@@ -6,9 +6,6 @@
 package as.pa2.gui;
 
 import as.pa2.server.Server;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import javax.swing.SwingWorker;
 
@@ -194,9 +191,6 @@ public class ServerGUI extends javax.swing.JFrame {
                     String LoadBPort = jLoadBPort.getText();
                     String queueSize = jQueueSize.getText();
                     
-                   
-                    
-                    
                     try{
                         monitorPortInt = Integer.parseInt(monitorPort);
                     }catch(Exception e){
@@ -215,19 +209,14 @@ public class ServerGUI extends javax.swing.JFrame {
                         JLogs.append("Queue Size is not valid! \n");
                         return null;
                     }
-                    
-                    //int monitorPortInt = Integer.parseInt(monitorPort);
-                    //int LoadBPortInt = Integer.parseInt(LoadBPort);
-                    //int queueSizeInt = Integer.parseInt(queueSize);
-                    
-                    
+                                                            
                     if(validate(monitorIP)==false){
                         JLogs.append("Monitor IP is not valid! \n");
                         return null;
-                    }else if(monitorPortInt>=65535 && monitorPortInt<=1024){
+                    }else if(monitorPortInt>=65535 || monitorPortInt<=1024){
                         JLogs.append("Monitor Port is not valid! \n");
                         return null;
-                    }else if(loadBPortInt>=65535 && loadBPortInt<=1024){
+                    }else if(loadBPortInt>=65535 || loadBPortInt<=1024){
                         JLogs.append("Load Balancer Port is not valid! \n");
                         return null;
                     }else if (queueSizeInt<1){

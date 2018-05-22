@@ -31,11 +31,7 @@ public class Server {
     public BufferedReader cin;
     public Socket cliente;
     public PrintStream cout;
-    /*
-    public static void main(String[] args) throws IOException {
-        Server serverobj=new Server(5000);
-        serverobj.startServer();
-    }*/
+
     
     public Server(int port){
         this.port=port;
@@ -43,9 +39,6 @@ public class Server {
     }
 
     public void startServer(String monitorIP, String monitorPort, String LoadBPort, String queueSize) throws IOException {
-        
-        
-        
         
         server=new ServerSocket(5000);
         System.out.println("Server Started");

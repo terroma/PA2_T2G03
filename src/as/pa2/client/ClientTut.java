@@ -12,7 +12,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 /**
  *
- * @author SHUBHAM
+ * @author SHUBHAMBYE
  */
 public class ClientTut {
     
@@ -33,8 +33,8 @@ public class ClientTut {
                            System.out.println("Connection ended by client");
  			   break;
                         }
-			//s=sin.readLine();
-			//System.out.print("Server : "+s+"\n");
+			s=sin.readLine();
+			System.out.print("Server : "+s+"\n");
   			
 		}
                 sk.close();
