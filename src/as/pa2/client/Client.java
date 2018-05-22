@@ -7,7 +7,7 @@ package as.pa2.client;
 
 /**
  *
- * @author terroma
+ * @author bruno
  */
 public class Client {
     
