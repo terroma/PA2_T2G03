@@ -15,7 +15,7 @@ public class Pi {
 
     // iterations: num of iterations
     // delay: delay in seconds to simulate computational time
-    public Double compute(Long iterations, Long delay) {
+    public Double compute(Long iterations, int delay) {
     
         double pi = 0;
         double denominator = 1;

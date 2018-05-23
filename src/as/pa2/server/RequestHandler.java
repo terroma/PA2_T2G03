@@ -6,6 +6,7 @@
 package as.pa2.server;
 
 import as.pa2.protocol.PiRequest;
+import as.pa2.protocol.PiResponse;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -37,8 +38,18 @@ public class RequestHandler implements Runnable {
             
             long time = System.currentTimeMillis();
             while( true ) {
+                System.out.println("Está à espera");
                 PiRequest request = (PiRequest) oInStream.readObject();
                 
+                if(request!=null){
+                    System.out.println("Recebeu um request");
+                    Double pi = new Pi().compute(request.getPrecision(), request.getDelay());
+                    System.out.println("calculou o pi");
+                    PiResponse response = new PiResponse(request.getClientId(), request.getRequestId(), 2, request.getPrecision(), request.getDelay(), pi);
+                    System.out.println("Tenta enviar");
+                    oOutStream.writeObject(response);
+                    System.out.println("Enviou");
+                }
             }
             
         } catch (IOException ioe) {

@@ -27,7 +27,7 @@ public class ServerGUI extends javax.swing.JFrame {
      */
     public ServerGUI() {
         initComponents();
-        serverobj = new Server(5000);
+        //serverobj = new Server(5000);
         
     }
     
@@ -39,7 +39,6 @@ public class ServerGUI extends javax.swing.JFrame {
         return PATTERN.matcher(ip).matches();
     }
     
-
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -227,7 +226,7 @@ public class ServerGUI extends javax.swing.JFrame {
                         JLogs.append("Server connected Load-balancer on Port: " + LoadBPort + " \n");
                         JLogs.append("Server queue size is " + queueSize + " \n");
 
-                        serverobj.startServer(monitorIP, monitorPort, LoadBPort, queueSize);
+                        //serverobj.startServer(monitorIP, monitorPort, LoadBPort, queueSize);
                         return serverobj;
                     }
                 }else{
@@ -248,7 +247,7 @@ public class ServerGUI extends javax.swing.JFrame {
                 }else{
                     estado = false;
                     JLogs.append("Connection ended by server \n");
-                    serverobj.disconnect();
+                    //serverobj.disconnect();
                     return serverobj;
                 }
             }

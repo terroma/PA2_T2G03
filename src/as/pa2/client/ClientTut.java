@@ -18,7 +18,7 @@ public class ClientTut {
     
     public static void main(String args[]) throws Exception
 	{
-		Socket sk=new Socket("127.0.0.1",5000);
+		Socket sk=new Socket("127.0.0.1",8080);
 		BufferedReader sin=new BufferedReader(new InputStreamReader(sk.getInputStream()));
 		PrintStream sout=new PrintStream(sk.getOutputStream());
 		BufferedReader stdin=new BufferedReader(new InputStreamReader(System.in));

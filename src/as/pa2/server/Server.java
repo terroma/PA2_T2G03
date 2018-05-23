@@ -55,6 +55,7 @@ public class Server implements Runnable{
                 clientSocket = this.serverSocket.accept();
                 System.out.println("[*] Server["+serverId+"] "
                     + "Accepted Connection: "+clientSocket.getInetAddress().toString());
+                this.threadPool.execute(new RequestHandler(clientSocket, this.serverId));
             } catch (IOException ioe) {
                 if (isStopped()) {
                     System.out.println("Server Stopped.");
