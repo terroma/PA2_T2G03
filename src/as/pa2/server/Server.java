@@ -5,116 +5,88 @@
  */
 package as.pa2.server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
  * @author bruno
  */
-public class Server {
+public class Server implements Runnable{
 
-    public int port;
-    public ServerSocket server=null;
-    public Socket client=null;
-    public ExecutorService pool = null;
-    public int clientcount=0;
-    public BufferedReader cin;
-    public Socket cliente;
-    public PrintStream cout;
-
+    protected int serverPort;
+    protected ServerSocket serverSocket;
+    protected boolean isStopped;
+    protected Thread runningThread;
+    protected ExecutorService threadPool;
     
-    public Server(int port){
-        this.port=port;
-        pool = Executors.newFixedThreadPool(5);
+    protected int serverId;
+    protected UUID uniqueClientId = UUID.randomUUID();
+    
+    /* default server constructor */
+    public Server() {
+        this.serverId = uniqueClientId.hashCode();
+        System.out.println("[*] Starting Server["+serverId+"] ...");
+        this.serverPort = 8080;
+        this.serverSocket = null;
+        this.isStopped = false;
+        this.runningThread = null;
+        this.threadPool = Executors.newFixedThreadPool(10);
     }
-
-    public void startServer(String monitorIP, String monitorPort, String LoadBPort, String queueSize) throws IOException {
-        
-        server=new ServerSocket(5000);
-        System.out.println("Server Started");
-        while(true){
-            client=server.accept();
-            clientcount++;
-            ServerThread runnable= new ServerThread(client,clientcount,this);
-            pool.execute(runnable);
+    
+    @Override
+    public void run() {
+        synchronized( this ) {
+            this.runningThread = Thread.currentThread();
         }
+        openServerSocket();
+        System.out.println("[*] Server["+serverId+"] Connected ...");
         
-    }
-
-    public static class ServerThread implements Runnable {
-        
-        Server server=null;
-        Socket client=null;
-        BufferedReader cin;
-        PrintStream cout;
-        Scanner sc=new Scanner(System.in);
-        int id;
-        String s;
-        
-        ServerThread(Socket client, int count ,Server server ) throws IOException {
+        while (!isStopped()) {
+            Socket clientSocket = null;
             
-            this.client=client;
-            this.server=server;
-            this.id=count;
-            System.out.println("Connection "+id+"established with client "+client);
-            
-            cin=new BufferedReader(new InputStreamReader(client.getInputStream()));
-            cout=new PrintStream(client.getOutputStream());
-        
-        }
-
-        @Override
-        public void run() {
-           int x=1;
-        try{
-        while(true){
-            s=cin.readLine();
-
-                    System.out.print("Client("+id+") :"+s+"\n");
-                    System.out.print("Server : ");
-                    //s=stdin.readLine();
-                        s=sc.nextLine();
-                    if (s.equalsIgnoreCase("bye"))
-                    {
-                        cout.println("BYE");
-                        x=0;
-                        System.out.println("Connection ended by server");
-                        break;
-                    }
-                    cout.println(s);
+            try {
+                clientSocket = this.serverSocket.accept();
+                System.out.println("[*] Server["+serverId+"] "
+                    + "Accepted Connection: "+clientSocket.getInetAddress().toString());
+            } catch (IOException ioe) {
+                if (isStopped()) {
+                    System.out.println("Server Stopped.");
+                    break;
+                }
+                throw new RuntimeException(
+                        "Error accepting client connection.",ioe);
             }
-            cin.close();
-            client.close();
-            cout.close();
-            if(x==0) {
-                System.out.println( "Server cleaning up." );
-                System.exit(1);
-            }
-        } 
-        catch(IOException ex){
-            System.out.println("Error : "+ex);
+            /*
+            this.threadPool.execute(
+                        new RequestHandler(clientSocket, this.serverId));
+            */
         }
-            
- 		
+        this.threadPool.shutdown();
+        System.out.println("Server Stopped.");
+    }
+    
+    private synchronized boolean isStopped() {
+        return this.isStopped;
+    }
+    
+    private void openServerSocket() {
+        try {
+            this.serverSocket = new ServerSocket(this.serverPort);
+        } catch (IOException ioe) {
+            throw new RuntimeException(
+                    "Cannot open port "+this.serverPort+"!", ioe);
         }
     }
     
-    public void disconnect() throws IOException{
-        System.out.println("Connection ended by server");
-        cin.close();
-        client.close();
-        cout.close();
-            
+    public static void main(String[] args) {
+        Server s = new Server();
+        s.run();
     }
-    
 }

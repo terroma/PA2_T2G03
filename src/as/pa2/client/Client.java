@@ -1,53 +1,116 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package as.pa2.client;
 
-import java.io.BufferedReader;
+import as.pa2.protocol.PiRequest;
+import as.pa2.protocol.PiResponse;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintStream;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.Inet4Address;
+import java.net.InetAddress;
 import java.net.Socket;
+import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-/**
- *
- * @author bruno
- */
 public class Client {
 
-    private Socket sk;
-    private BufferedReader sin;
-    private PrintStream sout;
-    private BufferedReader stdin;
+    private InetAddress connectedAddress;
+    private Socket tcpSocket;
+    private int connectedPort;
+    private ObjectInputStream oInputStream;
+    private ObjectOutputStream oOutStream;
     
+    private int clientId;
+    private UUID uniqueClientId = UUID.randomUUID();
+    
+    /* default client constructor */
+    public Client() {
+        this.clientId = uniqueClientId.hashCode();
+        initClient("localhost",8080);
+    }
+    
+    public Client(int clientId, String host, int port) {
+        this.clientId = clientId;
+        initClient(host, port);
+    }
+    
+    public Client(String host, int port) {
+        initClient(host, port);
+    }
+    
+    private void initClient(String host, int port) {
+        try {
+            System.out.println("[*] Starting Client["+clientId+"] ...");
+            this.connectedAddress = Inet4Address.getByName(host);
+            this.connectedPort = port;
+            this.tcpSocket = new Socket(connectedAddress, connectedPort);
+            System.out.println("[*] Client["+clientId+"] Connected on port:"+connectedPort);
+            
+            this.oInputStream = new ObjectInputStream(tcpSocket.getInputStream());
+            this.oOutStream = new ObjectOutputStream(tcpSocket.getOutputStream());
 
-    public void startClient() throws IOException{
-        System.out.println("ola");
-        sk=new Socket("127.0.0.1",5000);
-        sin=new BufferedReader(new InputStreamReader(sk.getInputStream()));
-        sout=new PrintStream(sk.getOutputStream());
-        stdin=new BufferedReader(new InputStreamReader(System.in));
-        String s;
-        
-        while ( true){
-            System.out.print("Client : ");
-            s=stdin.readLine();
-            sout.println(s);
+            (new Thread(new InputListeningThread())).start();
 
-            s=sin.readLine();
-            System.out.print("Server : "+s+"\n");    
+        } catch (SocketException se) {
+            System.out.println("[!] SocketException! Client["+clientId+"]");
+            se.printStackTrace();
+        } catch (UnknownHostException uhe) {
+            System.out.println("[!] UnknownHostException! Client["+clientId+"]");
+            uhe.printStackTrace();
+        } catch (IOException ioe) {
+            System.out.println("[!] IOException! Client["+clientId+"]");
+            ioe.printStackTrace();
+        }
+
+    }
+    
+    public void sendMessage(PiRequest request) {
+        synchronized(this) {
+            if(!this.tcpSocket.isConnected())
+                return;
+            
+            try {
+                System.out.println("[*] Client["+clientId+"] Sending request...");
+                System.out.println("[*] Request: "+request.toString());
+                this.oOutStream.writeObject(request);
+                this.oOutStream.flush();
+            } catch (IOException ioe) {
+                System.out.println("[!] IOException! Client["+clientId+"]");
+                ioe.printStackTrace();
+            }
+            
         }
     }
     
-    public void endClient() throws IOException{
-        sk.close();
-        sin.close();
-        sout.close();
-        stdin.close();
+    private class InputListeningThread implements Runnable {
+
+        public InputListeningThread() { }
+
+        @Override
+        public void run() {
+            try {
+                while (true) {
+                    PiResponse response = (PiResponse) oInputStream.readObject();
+                    if (response != null) {
+                        System.out.println("[*] Client["+clientId+"] Received response...");
+                        System.out.println("[*] Response: "+response.toString());
+                    }
+                }
+            } catch (IOException ioe) {
+                System.out.println("[!] IOException! Client["
+                        +clientId+"]");
+                ioe.printStackTrace();
+            } catch (ClassNotFoundException ex) {
+                System.out.println("[!] ClassNotFoundException! Client["
+                        +clientId+"]");
+                ex.printStackTrace();
+            }
+        }
     }
-       
+
+    public static void main(String[] args) {
+        Client c = new Client();
+    }
 }
