@@ -6,6 +6,7 @@
 package as.pa2.server;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -13,12 +14,13 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import jdk.internal.util.xml.impl.Pair;
 
 /**
  *
  * @author bruno
  */
-public class Server implements Runnable{
+public class Server implements Runnable {
 
     protected int serverPort;
     protected ServerSocket serverSocket;
@@ -29,6 +31,11 @@ public class Server implements Runnable{
     protected int serverId;
     protected UUID uniqueClientId = UUID.randomUUID();
     
+    private String host;
+    private volatile String id;
+    private volatile boolean isAliveFlag;
+    private volatile boolean readyToServe = true;
+    
     /* default server constructor */
     public Server() {
         this.serverId = uniqueClientId.hashCode();
@@ -38,6 +45,14 @@ public class Server implements Runnable{
         this.isStopped = false;
         this.runningThread = null;
         this.threadPool = Executors.newFixedThreadPool(10);
+        this.host = "127.0.0.1"; // or locahost
+    }
+    
+    public Server(String host, int port) {
+        this.host = host;
+        this.serverPort = port;
+        this.id = host + ":" + port;
+        isAliveFlag = false;
     }
     
     @Override
@@ -54,7 +69,8 @@ public class Server implements Runnable{
             try {
                 clientSocket = this.serverSocket.accept();
                 System.out.println("[*] Server["+serverId+"] "
-                    + "Accepted Connection: "+clientSocket.getInetAddress().toString());
+                    + "Accepted Connection: "+clientSocket.getInetAddress().getHostAddress()
+                        +":"+clientSocket.getPort());
                 this.threadPool.execute(new RequestHandler(clientSocket, this.serverId));
             } catch (IOException ioe) {
                 if (isStopped()) {
@@ -70,6 +86,7 @@ public class Server implements Runnable{
             */
         }
         this.threadPool.shutdown();
+        this.stop();
         System.out.println("Server Stopped.");
     }
     
@@ -77,13 +94,92 @@ public class Server implements Runnable{
         return this.isStopped;
     }
     
+    public synchronized void stop() {
+        this.isStopped = true;
+        try {
+            this.serverSocket.close();
+        } catch (IOException ioe) {
+            throw new RuntimeException("Error closing server",ioe);
+        }
+    }
+    
     private void openServerSocket() {
         try {
-            this.serverSocket = new ServerSocket(this.serverPort);
+            this.serverSocket = new ServerSocket(this.serverPort, 100, InetAddress.getByName(this.host));
         } catch (IOException ioe) {
             throw new RuntimeException(
                     "Cannot open port "+this.serverPort+"!", ioe);
         }
+    }
+    
+    public void setAlive(boolean isAliveFlag) {
+        this.isAliveFlag = isAliveFlag;
+    }
+    
+    public boolean isAlive() {
+        return isAliveFlag;
+    }
+    
+    public String getId() {
+        return id;
+    }
+    
+    /* hostPort combination */
+    public void setId(String id) {
+        this.id = id;
+    }
+    
+    public String getHost() {
+        return host;
+    }
+    
+    public void setHost(String host) {
+        if (host != null) {
+            this.host = host;
+            id = host + ":" + serverPort;
+        }
+    }
+    
+    public int getPort() {
+        return serverPort;
+    }
+    
+    public void setPort(int port) {
+        this.serverPort = port;
+        
+        if (host != null) {
+            id = host + ":" + port;
+        }
+    }
+    
+    public final boolean isReadyToServe() {
+        return readyToServe;
+    }
+    
+    public final void setReadyToServe(boolean readyToServe) {
+        this.readyToServe = readyToServe;
+    }
+    
+    @Override
+    public String toString() {
+        return this.getId();
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (!(obj instanceof Server))
+            return false;
+        Server svc = (Server) obj;
+        return svc.getId().equals(this.getId());
+    }
+    
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + (null == this.getId() ? 0 : this.getId().hashCode());
+        return hash;
     }
     
     public static void main(String[] args) {

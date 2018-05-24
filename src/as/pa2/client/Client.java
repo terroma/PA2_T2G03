@@ -11,13 +11,15 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class Client {
 
     private InetAddress connectedAddress;
     private Socket tcpSocket;
     private int connectedPort;
-    private ObjectInputStream oInputStream;
+    private ObjectInputStream oInStream;
     private ObjectOutputStream oOutStream;
     
     private int clientId;
@@ -27,8 +29,6 @@ public class Client {
     public Client() throws IOException {
         this.clientId = uniqueClientId.hashCode();
         initClient("localhost",8080);
-        //this.oOutStream = new ObjectOutputStream(this.tcpSocket.getOutputStream());
-
     }
     
     public Client(int clientId, String host, int port) {
@@ -50,7 +50,7 @@ public class Client {
             
             this.oOutStream = new ObjectOutputStream(tcpSocket.getOutputStream());
 
-            //(new Thread(new InputListeningThread())).start();
+            (new Thread(new InputListeningThread())).start();
 
         } catch (SocketException se) {
             System.out.println("[!] SocketException! Client["+clientId+"]");
@@ -66,7 +66,6 @@ public class Client {
     }
     
     public void sendMessage(PiRequest request) throws IOException {
-        //this.oOutStream = new ObjectOutputStream(this.tcpSocket.getOutputStream());
         synchronized(this) {
             if(!this.tcpSocket.isConnected())
                 return;
@@ -83,6 +82,16 @@ public class Client {
         }
     }
     
+    public void stop() {
+        try {
+            this.oInStream.close();
+            this.oOutStream.close();
+            this.tcpSocket.close();
+        } catch (IOException ex) {
+            System.out.println("[!] IOException :"+ex.getMessage());
+        }
+    }
+    
     private class InputListeningThread implements Runnable {
 
         public InputListeningThread() { }
@@ -91,8 +100,8 @@ public class Client {
         public void run() {
             try {
                 while (true) {
-                    oInputStream = new ObjectInputStream(tcpSocket.getInputStream());
-                    PiResponse response = (PiResponse) oInputStream.readObject();
+                    oInStream = new ObjectInputStream(tcpSocket.getInputStream());
+                    PiResponse response = (PiResponse) oInStream.readObject();
                     if (response != null) {
                         System.out.println("[*] Client["+clientId+"] Received response...");
                         System.out.println("[*] Response: "+response.toString());
