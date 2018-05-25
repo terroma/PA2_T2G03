@@ -55,6 +55,11 @@ public class Server implements Runnable {
         isAliveFlag = false;
     }
     
+    public Server(String id) {
+        setId(id);
+        isAliveFlag = false;
+    }
+    
     @Override
     public void run() {
         synchronized( this ) {
@@ -150,6 +155,10 @@ public class Server implements Runnable {
         if (host != null) {
             id = host + ":" + port;
         }
+    }
+    
+    public String getHostPort() {
+        return host + ":" + serverPort;
     }
     
     public final boolean isReadyToServe() {
