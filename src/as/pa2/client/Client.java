@@ -29,6 +29,7 @@ public class Client {
     public Client() throws IOException {
         this.clientId = uniqueClientId.hashCode();
         initClient("localhost",8080);
+        System.out.println("ola");
     }
     
     public Client(int clientId, String host, int port) {

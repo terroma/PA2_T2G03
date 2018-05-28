@@ -225,7 +225,9 @@ public class ServerGUI extends javax.swing.JFrame {
                         JLogs.append("Server connected to Monitor with IP: " + monitorIP + " on Port: " + monitorPort + " \n");
                         JLogs.append("Server connected Load-balancer on Port: " + LoadBPort + " \n");
                         JLogs.append("Server queue size is " + queueSize + " \n");
-
+                        
+                        serverobj = new Server();
+                        serverobj.run();
                         //serverobj.startServer(monitorIP, monitorPort, LoadBPort, queueSize);
                         return serverobj;
                     }
