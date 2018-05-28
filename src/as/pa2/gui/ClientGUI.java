@@ -196,17 +196,23 @@ public class ClientGUI extends javax.swing.JFrame {
             @Override
             protected Client doInBackground() throws Exception {
                 if (estado == false){
-                    estado = true;
-                    loadBalancerIP.setEnabled(false);
-                    loadBalancerPort.setEnabled(false);
-                    System.out.println("Client Started");
-                    jLogs.append("Client Started \n");
-                    jLogs.append("Client connected with Load-balancer on IP: " + "x" + "and IP: " + "y" +  "\n");
+                    try{
+                        clientobj = new Client();    
+                        System.out.println("Erro");
+                        estado = true;
+                        loadBalancerIP.setEnabled(false);
+                        loadBalancerPort.setEnabled(false);
+                        System.out.println("Client Started");
+                        jLogs.append("Client Started \n");
+                        jLogs.append("Client connected with Load-balancer on IP: " + "x" + "and IP: " + "y" +  "\n");
+                             
+                        return clientobj;
+                        
+                    }catch(Exception e){
+                        jLogs.append("Error starting Client");
+                        return null;
+                    }
                     
-                    clientobj = new Client();         
-          
-                    
-                    return clientobj;
                 }else{
                     jLogs.append("Server already started \n");
                     return null;
