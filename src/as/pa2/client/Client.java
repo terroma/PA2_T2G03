@@ -11,8 +11,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class Client {
 
@@ -28,8 +26,7 @@ public class Client {
     /* default client constructor */
     public Client() throws IOException {
         this.clientId = uniqueClientId.hashCode();
-        initClient("localhost",8080);
-        System.out.println("ola");
+        initClient("127.0.0.1",5000);
     }
     
     public Client(int clientId, String host, int port) {
@@ -46,8 +43,11 @@ public class Client {
             System.out.println("[*] Starting Client["+clientId+"] ...");
             this.connectedAddress = Inet4Address.getByName(host);
             this.connectedPort = port;
-            this.tcpSocket = new Socket(connectedAddress, connectedPort);
+            this.tcpSocket = new Socket(host, port);
+            
             System.out.println("[*] Client["+clientId+"] Connected on port:"+connectedPort);
+            
+            
             
             this.oOutStream = new ObjectOutputStream(tcpSocket.getOutputStream());
 
@@ -64,6 +64,14 @@ public class Client {
             ioe.printStackTrace();
         }
 
+    }
+    
+    private void openSocket(String ip, int port) {
+        try {
+            this.tcpSocket = new Socket(ip, port);
+        } catch (Exception e) {
+            System.out.println("Error openning socket"+e.getMessage());
+        }
     }
     
     public void sendMessage(PiRequest request) throws IOException {

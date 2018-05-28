@@ -45,11 +45,17 @@ public class Server implements Runnable {
         this.host = "127.0.0.1"; // or locahost
     }
     
-    public Server(String host, int port) {
+    public Server(String host, int port, String monitorIP, int monitorPort, int loadBalancerPort, int queueSize) {
         this.host = host;
         this.serverPort = port;
         this.id = host + ":" + port;
         isAliveFlag = false;
+        this.serverSocket = null;
+        this.isStopped = false;
+        this.runningThread = null;
+        this.threadPool = Executors.newFixedThreadPool(10);
+        System.out.println(host + " : " + port);
+        System.out.println("[*] Starting Server["+id+"] ...");
     }
     
     public Server(String id) {
@@ -63,7 +69,7 @@ public class Server implements Runnable {
             this.runningThread = Thread.currentThread();
         }
         openServerSocket();
-        System.out.println("[*] Server["+serverId+"] Connected ...");
+        System.out.println("[*] Server["+id+"] Connected ...");
         
         while (!isStopped()) {
             Socket clientSocket = null;
@@ -99,7 +105,9 @@ public class Server implements Runnable {
     public synchronized void stop() {
         this.isStopped = true;
         try {
+            System.out.println("Server Stoped!");
             this.serverSocket.close();
+            
         } catch (IOException ioe) {
             throw new RuntimeException("Error closing server",ioe);
         }
@@ -189,7 +197,7 @@ public class Server implements Runnable {
     }
     
     public static void main(String[] args) {
-        Server s = new Server();
+        Server s = new Server("127.0.0.1", 5000, "", 0,0,0);
         s.run();
     }
 }
