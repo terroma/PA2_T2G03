@@ -10,6 +10,7 @@ import as.pa2.protocol.PiResponse;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -18,7 +19,7 @@ import java.util.logging.Logger;
  *
  * @author terroma
  */
-public class RequestHandler implements Runnable {
+public class RequestHandler implements Runnable, Serializable {
 
     protected Socket clientSocket;
     protected int serverId;

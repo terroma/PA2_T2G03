@@ -6,24 +6,28 @@
 package as.pa2.server;
 
 import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author bruno
  */
-public class Server implements Runnable {
+public class Server implements Serializable, Runnable {
 
     protected int serverPort;
-    protected ServerSocket serverSocket;
+    protected transient ServerSocket serverSocket;
     protected boolean isStopped;
-    protected Thread runningThread;
-    protected ExecutorService threadPool;
+    protected transient Thread runningThread;
+    protected transient ExecutorService threadPool;
     
     protected int serverId;
     protected UUID uniqueClientId = UUID.randomUUID();
@@ -32,6 +36,8 @@ public class Server implements Runnable {
     private volatile String id;
     private volatile boolean isAliveFlag;
     private volatile boolean readyToServe = true;
+    
+    protected transient Socket monitorSocket;
     
     /* default server constructor */
     public Server() {
@@ -45,7 +51,7 @@ public class Server implements Runnable {
         this.host = "127.0.0.1"; // or locahost
     }
     
-    public Server(String host, int port, String monitorIP, int monitorPort, int loadBalancerPort, int queueSize) {
+    public Server(String host, int port, String monitorIp, int monitorPort, int loadBalancerPort, int queueSize) {
         this.host = host;
         this.serverPort = port;
         this.id = host + ":" + port;
@@ -70,7 +76,7 @@ public class Server implements Runnable {
         }
         openServerSocket();
         System.out.println("[*] Server["+id+"] Connected ...");
-        
+        notifyMonitor("127.0.0.2", 5000);
         while (!isStopped()) {
             Socket clientSocket = null;
             
@@ -96,6 +102,23 @@ public class Server implements Runnable {
         this.threadPool.shutdown();
         this.stop();
         System.out.println("Server Stopped.");
+    }
+    
+    private void notifyMonitor(String monitorIp, int monitorPort) {
+        try {
+            System.out.println("[*] Server["+this.id+"]: openning monitor socket.");
+            this.monitorSocket = new Socket(monitorIp, monitorPort);
+            System.out.println("[*] Server["+this.id+"]: monitor socket openned.");
+            ObjectOutputStream oOutStream = new ObjectOutputStream(monitorSocket.getOutputStream());
+            oOutStream.writeObject(this);
+            oOutStream.flush();
+            System.out.println("[*] Server["+this.id+"]: monitor notified.");
+            oOutStream.close();
+            System.out.println("[*] Server["+this.id+"]: closing monitor connection.");
+            this.monitorSocket.close();
+        } catch (IOException ex) {
+            System.out.println("[!] Server["+this.id+"]: failed connection to monitor!"+ex.getMessage());
+        }
     }
     
     private synchronized boolean isStopped() {

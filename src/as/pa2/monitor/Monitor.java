@@ -13,6 +13,7 @@ import as.pa2.monitor.listeners.ServerStatusChangeListener;
 import as.pa2.server.Server;
 import as.pa2.server.ServerComparator;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -29,6 +30,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -102,11 +105,33 @@ public class Monitor extends AbstractMonitor implements Runnable {
     @Override
     public void run() {
         openMonitorSocket();
-        System.out.println("[*] Monitor started ...");
+        System.out.println("[*] Monitor Started ...");
         
         while (!isStopped()) {
             Socket serverSocket = null;
             
+            try {
+                serverSocket = this.monitorSocket.accept();
+                System.out.println("[*] Monitor:"
+                        + " accepted connection from server:"+serverSocket.getInetAddress());
+                ObjectInputStream oInStream =
+                        new ObjectInputStream(serverSocket.getInputStream());
+                
+                Server newServer = (Server) oInStream.readObject();
+                if (newServer != null) {
+                    addServer(newServer);
+                    System.out.println("[*] Monitor: new server added to list, server: "+newServer.getId());
+                }
+            } catch (IOException ioe) {
+                if (isStopped()) {
+                    System.out.println("[*] Monitor Stopped !");
+                    break;
+                }
+                throw new RuntimeException(
+                        "Monitor: Error accepting server connection.",ioe);
+            } catch (ClassNotFoundException ex) {
+                Logger.getLogger(Monitor.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
     }
 
@@ -514,4 +539,8 @@ public class Monitor extends AbstractMonitor implements Runnable {
         }
     }
     
+    public static void main(String[] args) {
+        Monitor m = new Monitor("127.0.0.2", 5000);
+        m.run();
+    } 
 }
