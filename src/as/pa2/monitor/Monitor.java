@@ -5,7 +5,6 @@
  */
 package as.pa2.monitor;
 
-import as.pa2.loadbalancer.AbstractLoadBalancer;
 import as.pa2.monitor.availability.IFPing;
 import as.pa2.monitor.availability.IFPingStrategy;
 import as.pa2.monitor.availability.SerialPingStrategy;
@@ -13,7 +12,10 @@ import as.pa2.monitor.listeners.ServerListChangeListener;
 import as.pa2.monitor.listeners.ServerStatusChangeListener;
 import as.pa2.server.Server;
 import as.pa2.server.ServerComparator;
+import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,10 +36,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  */
 public class Monitor extends AbstractMonitor implements Runnable {
 
-    protected String ip;
-    protected int port;
-    protected ServerSocket monitorSocket;
-    
     private final static SerialPingStrategy DEFAULT_PING_STRATEGY = new SerialPingStrategy();
     protected IFPingStrategy pingStrategy = DEFAULT_PING_STRATEGY;
     protected IFPing ping = null;
@@ -58,7 +56,10 @@ public class Monitor extends AbstractMonitor implements Runnable {
     private List<ServerListChangeListener> changeListeners = new CopyOnWriteArrayList<ServerListChangeListener>(); 
     private List<ServerStatusChangeListener> serverStatusListeners = new CopyOnWriteArrayList<ServerStatusChangeListener>();
     
-    
+    protected String ip;
+    protected int port;
+    protected ServerSocket monitorSocket;
+    protected boolean isStopped;
     
     public Monitor(String ip, int port) {
         this.ip = ip;
@@ -98,12 +99,29 @@ public class Monitor extends AbstractMonitor implements Runnable {
         return aproposLock;
     }
     
-    
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        openMonitorSocket();
+        System.out.println("[*] Monitor started ...");
+        
+        while (!isStopped()) {
+            Socket serverSocket = null;
+            
+        }
     }
 
+    private void openMonitorSocket() {
+        try {
+            this.monitorSocket = new ServerSocket(this.port, 100, InetAddress.getByName(this.ip));
+        } catch (IOException ioe) {
+            throw new RuntimeException(
+                    "Cannot open port "+this.port+"!", ioe);
+        }
+    }
+    
+    private synchronized boolean isStopped() {
+        return this.isStopped;
+    }
     
     public List<Server> getServerList(boolean availableOnly) {
         return (availableOnly ? getReachableServers() : getAllServers());
@@ -141,7 +159,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 newList.add(newServer);
                 setServersList(newList);
             } catch (Exception e) {
-                System.out.println("LoadBalancer ["+name+"]: Error adding newServer "+newServer.getId());
+                System.out.println("Monitor: Error adding newServer "+newServer.getId());
             }
         }
     }
@@ -155,7 +173,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 newList.addAll(newServers);
                 setServersList(newList);
             } catch (Exception e) {
-                System.out.println("LoadBalancer ["+name+"]: Error adding newServers "+newServers.size());
+                System.out.println("Monitor: Error adding newServers "+newServers.size());
             }
         }
     }
@@ -179,8 +197,8 @@ public class Monitor extends AbstractMonitor implements Runnable {
             }
             
             if (triggered) {
-                System.out.printf("LoadBalancer [{}]: markServerDown called on [{}]"
-                , name, id);
+                System.out.printf("Monitor: markServerDown called on [{}]"
+                , id);
                 notifyServerStatusChangeListener(changedServers);
             }
         } finally {
@@ -194,7 +212,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
             return;
         }
         System.out.printf("LoadBalancer [{}]: markServerDown called on [{}]"
-                , name, server.getId());
+                , server.getId());
         server.setAlive(false);
         //forceQuickPing();
         
@@ -235,7 +253,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
     
     public void setServersList(List serversList) {
         Lock writeLock = allServerLock.writeLock();
-        System.out.println("LoadBalancer ["+name+"]: Clearing server list");
+        System.out.println("Monitor: Clearing server list");
         
         ArrayList<Server> newServers = new ArrayList<Server>();
         writeLock.lock();
@@ -324,7 +342,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
         try {
             return (availableOnly ? upServersList.get(index) : allServersList.get(index));
         } catch (Exception e) {
-            System.out.println("LoadBalancer["+name+"]: Server not found running getServerByIndex("+index+","+availableOnly+")");
+            System.out.println("Monitor: Server not found running getServerByIndex("+index+","+availableOnly+")");
         }   return null;
     }
     
@@ -334,15 +352,21 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 try {
                     listener.serverStatusChanged(changedServers);
                 } catch (Exception e) {
-                    System.out.printf("LoadBalancer [{}]: Error invoking server status change listener", name, e);
+                    System.out.printf("Monitor: Error invoking server status change listener", e);
                 }
             }
         }
     }
     
-    public void shutdown() {
+    public synchronized void shutdown() {
         cancelPingTask();
-        
+        this.isStopped = true;
+        try {
+            this.monitorSocket.close();
+        } catch (IOException ioe) {
+            throw new RuntimeException(
+                    "Error shutingdown monitor", ioe);
+        }
     }
     
     /*--------------------- PING PART OF LOADBALANCER ---------------------*/
@@ -382,12 +406,12 @@ public class Monitor extends AbstractMonitor implements Runnable {
         if (canSkipPing()) {
             return;
         }
-        System.out.printf("LoadBalancer [{}]: forceQuickPing invoking", name);
+        System.out.printf("Monitor: forceQuickPing invoking");
         
         try {
             new Pinger(pingStrategy).runPinger();
         } catch (Exception e) {
-            System.out.printf("LoadBalancer [{}]: Error running forceQuickPing()", name, e);
+            System.out.printf("Monitor: Error running forceQuickPing()", e);
         }
     }
     
@@ -402,7 +426,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
         if (lbTimer != null) {
             lbTimer.cancel();
         }
-        lbTimer = new Timer("LoadBalancer-PingTimer-"+name, true);
+        lbTimer = new Timer("Monitor-HeartBeatTimer", true);
         lbTimer.schedule(new PingTask(), 0, pingIntervalSeconds * 1000);
     }
     
@@ -416,7 +440,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
             try {
                 new Pinger(pingStrategy).runPinger();
             } catch (Exception e) {
-                System.out.println("LoadBalancer ["+name+"]: Error pinging.");
+                System.out.println("Monitor: Error pinging.");
                 e.printStackTrace();
             }
         }
@@ -470,8 +494,8 @@ public class Monitor extends AbstractMonitor implements Runnable {
                     
                     if (oldIsAlive != isAlive) {
                         changedServers.add(server);
-                        System.out.printf("LoadBalancer [{}]: Server [{}] status "
-                            +"changed to {}", name, server.getId(), (isAlive ? "ALIVE" : "DEAD"));
+                        System.out.printf("Monitor: Server [{}] status "
+                            +"changed to {}", server.getId(), (isAlive ? "ALIVE" : "DEAD"));
                     }
                     
                     if (isAlive) {
