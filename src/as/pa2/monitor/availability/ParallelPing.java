@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package as.pa2.loadbalancer.availability;
+package as.pa2.monitor.availability;
 
 import as.pa2.server.Server;
 import java.io.IOException;
@@ -14,7 +14,7 @@ import java.util.concurrent.Callable;
  *
  * @author terroma
  */
-public class ParallelPing extends AbstractLoadBalancerPing implements Callable<Boolean> {
+public class ParallelPing extends AbstractMonitorPing implements Callable<Boolean> {
 
     private String ipToPing;
     

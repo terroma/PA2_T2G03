@@ -3,9 +3,10 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package as.pa2.loadbalancer.availability;
+package as.pa2.monitor.availability;
 
 import as.pa2.loadbalancer.IFLoadBalancer;
+import as.pa2.monitor.IFMonitor;
 import as.pa2.server.Server;
 
 /**
@@ -24,7 +25,7 @@ public interface IFPing {
      */
     public boolean isAlive(Server server);
     
-    public void setLoadBalancer(IFLoadBalancer lb);
+    public void setMonitor(IFMonitor monitor);
     
-    public IFLoadBalancer getLoadBalancer();
+    public IFMonitor getMonitor();
 }

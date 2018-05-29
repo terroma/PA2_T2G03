@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package as.pa2.loadbalancer.availability;
+package as.pa2.monitor.availability;
 
 import as.pa2.server.Server;
 import java.io.IOException;
@@ -13,7 +13,7 @@ import java.net.InetAddress;
  *
  * @author terroma
  */
-public class SerialPing extends AbstractLoadBalancerPing {
+public class SerialPing extends AbstractMonitorPing {
 
     @Override
     public boolean isAlive(Server server) {

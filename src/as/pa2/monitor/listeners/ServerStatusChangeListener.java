@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package as.pa2.loadbalancer.listeners;
+package as.pa2.monitor.listeners;
 
 import as.pa2.server.Server;
 import java.util.Collection;

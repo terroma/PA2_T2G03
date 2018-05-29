@@ -16,13 +16,6 @@ import java.util.List;
 public interface IFLoadBalancer {
     
     /**
-     * Initial list of servers.
-     * 
-     * @param newServers new servers to add
-     */
-    public void addServers(List<Server> newServers);
-    
-    /**
      * Choose a server from load-balancer.
      * 
      * @param key An object that the load-balancer may use to determine
@@ -31,15 +24,6 @@ public interface IFLoadBalancer {
      * @return server chosen
      */
     public Server chooseServer(Object key);
-    
-    /**
-     * To be called by the clients of the load-balancer to notify that
-     * a Server is down else, the load-balancer will think its still Alive
-     * until the next Ping cycle.
-     * 
-     * @param server 
-     */
-    public void markServerDown(Server server);
     
     /**
      * @return Only the servers that are up and reachable.
