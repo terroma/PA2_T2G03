@@ -29,14 +29,11 @@ public class Client {
         initClient("127.0.0.1",5000);
     }
     
-    public Client(int clientId, String host, int port) {
-        this.clientId = clientId;
-        initClient(host, port);
+    public Client(String loadBalancerIP, int loadNBalancerPort) {
+        this.clientId = uniqueClientId.hashCode();
+        initClient(loadBalancerIP, loadNBalancerPort);
     }
     
-    public Client(String host, int port) {
-        initClient(host, port);
-    }
     
     private void initClient(String host, int port) {
         try {

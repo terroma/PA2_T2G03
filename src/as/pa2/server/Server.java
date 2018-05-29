@@ -39,6 +39,10 @@ public class Server implements Serializable, Runnable {
     
     protected transient Socket monitorSocket;
     
+    private String monitorIp;
+    private int monitorPort;
+    private int loadBalancerPort;
+    
     /* default server constructor */
     public Server() {
         this.serverId = uniqueClientId.hashCode();
@@ -59,7 +63,11 @@ public class Server implements Serializable, Runnable {
         this.serverSocket = null;
         this.isStopped = false;
         this.runningThread = null;
-        this.threadPool = Executors.newFixedThreadPool(10);
+        this.monitorIp = monitorIp;
+        this.monitorPort = monitorPort;
+        this.loadBalancerPort = loadBalancerPort;
+        
+        this.threadPool = Executors.newFixedThreadPool(queueSize);
         System.out.println(host + " : " + port);
         System.out.println("[*] Starting Server["+id+"] ...");
     }
@@ -76,7 +84,7 @@ public class Server implements Serializable, Runnable {
         }
         openServerSocket();
         System.out.println("[*] Server["+id+"] Connected ...");
-        notifyMonitor("127.0.0.2", 5000);
+        notifyMonitor(monitorIp, monitorPort);
         while (!isStopped()) {
             Socket clientSocket = null;
             
