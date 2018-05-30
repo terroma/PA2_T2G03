@@ -5,8 +5,9 @@
  */
 package as.pa2.gui;
 
+import as.pa2.gui.validation.AbstractValidate;
 import as.pa2.server.Server;
-import java.util.regex.Pattern;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 /**
@@ -17,27 +18,14 @@ public class ServerGUI extends javax.swing.JFrame {
     
     private Server serverobj;
     private boolean estado = false;
-    
-    int serverPortInt;
-    int monitorPortInt;
-    int loadBPortInt;
-    int queueSizeInt;
-    
+    private AbstractValidate validator;
+
     /**
      * Creates new form ServerGUI
      */
     public ServerGUI() {
         initComponents();
-        //serverobj = new Server(5000);
-        
-    }
-    
-    
-    // Validar IP
-    private static final Pattern PATTERN = Pattern.compile(
-        "^(([01]?\\d\\d?|2[0-4]\\d|25[0-5])\\.){3}([01]?\\d\\d?|2[0-4]\\d|25[0-5])$");
-    public static boolean validate(final String ip) {
-        return PATTERN.matcher(ip).matches();
+        validator = new AbstractValidate();
     }
     
     /**
@@ -206,63 +194,37 @@ public class ServerGUI extends javax.swing.JFrame {
         new SwingWorker<Server, Object> (){
             @Override
             protected Server doInBackground() throws Exception {
-                if (estado == false){
+                if (!estado){
                     
                     String serverIP = jServerIP.getText();
                     String serverPort = jServerPort.getText();
                     String monitorIP = jMonitorIP.getText();
                     String monitorPort = jMonitorPort.getText();
-                    String LoadBPort = jLoadBPort.getText();
+                    String loadBPort = jLoadBPort.getText();
                     String queueSize = jQueueSize.getText();
-                    
-                    
-                    try{
-                        serverPortInt = Integer.parseInt(serverPort);
-                    }catch(Exception e){
-                        JLogs.append("Server Port is not valid! \n");
-                        return null;
-                    }
-                    try{
-                        monitorPortInt = Integer.parseInt(monitorPort);
-                    }catch(Exception e){
-                        JLogs.append("Monitor Port is not valid! \n");
-                        return null;
-                    }
-                    try{
-                        loadBPortInt = Integer.parseInt(LoadBPort);
-                    }catch(Exception e){
-                        JLogs.append("Load Balancer Port is not valid! \n");
-                        return null;
-                    }
-                    try{
-                        queueSizeInt = Integer.parseInt(queueSize);
-                    }catch(Exception e){
-                        JLogs.append("Queue Size is not valid! \n");
-                        return null;
-                    }
-                    
-                    if(validate(serverIP)==false){
+                                   
+                    if(!validator.validateIP(serverIP)){
                         JLogs.append("Server IP is not valid! \n");
                         return null;
-                    }else if(serverPortInt>=65535 || serverPortInt<=1024){
+                    }else if(!validator.validatePort(serverPort)){
                         JLogs.append("Server Port is not valid! \n");
                         return null;
-                    }else if(validate(monitorIP)==false){
+                    }else if(!validator.validateIP(monitorIP)){
                         JLogs.append("Monitor IP is not valid! \n");
                         return null;
-                    }else if(monitorPortInt>=65535 || monitorPortInt<=1024){
+                    }else if(!validator.validatePort(monitorPort)){
                         JLogs.append("Monitor Port is not valid! \n");
                         return null;
-                    }else if(loadBPortInt>=65535 || loadBPortInt<=1024){
+                    }else if(!validator.validatePort(loadBPort)){
                         JLogs.append("Load Balancer Port is not valid! \n");
                         return null;
-                    }else if (queueSizeInt<1){
+                    }else if (!validator.validateQueueSize(queueSize)){
                         JLogs.append("Queue Size is not valid! \n");
                         return null;
                     }else if(serverIP.equals(monitorIP)){
                         JLogs.append("Server IP can't be equal to Monitor IP! \n");
                         return null;   
-                    }else if(serverPortInt == monitorPortInt || serverPortInt == loadBPortInt || monitorPortInt == loadBPortInt){
+                    }else if(serverPort.equals(monitorPort) || serverPort.equals(loadBPort) || monitorPort.equals(loadBPort)){
                         JLogs.append("Ports need to be diferent! \n");
                         return null;
                     }else{
@@ -278,11 +240,11 @@ public class ServerGUI extends javax.swing.JFrame {
                         JLogs.append("-------------------------------------------------------------------------------------------------------------------- \n");
                         JLogs.append("Server started with IP: " + serverIP + " and Port: " + serverPort + " \n");
                         JLogs.append("Server connected to Monitor with IP: " + monitorIP + " on Port: " + monitorPort + " \n");
-                        JLogs.append("Server connected Load-balancer on Port: " + LoadBPort + " \n");
+                        JLogs.append("Server connected Load-balancer on Port: " + loadBPort + " \n");
                         JLogs.append("Server queue size is " + queueSize + " \n");
                         JLogs.append("-------------------------------------------------------------------------------------------------------------------- \n");
                            
-                        serverobj = new Server(serverIP, serverPortInt, monitorIP, monitorPortInt, loadBPortInt, queueSizeInt);
+                        serverobj = new Server(serverIP, Integer.parseInt(serverPort), monitorIP, Integer.parseInt(monitorPort), Integer.parseInt(loadBPort), Integer.parseInt(queueSize));
                         serverobj.run();
                         
                         return serverobj;
@@ -299,7 +261,7 @@ public class ServerGUI extends javax.swing.JFrame {
         new SwingWorker<Server, Object> (){
             @Override
             protected Server doInBackground() throws Exception {
-                if (estado == false){
+                if (!estado){
                     JLogs.append("Server is already down \n");
                     return null;
                 }else{

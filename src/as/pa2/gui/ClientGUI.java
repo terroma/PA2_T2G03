@@ -6,6 +6,7 @@
 package as.pa2.gui;
 
 import as.pa2.client.Client;
+import as.pa2.gui.validation.AbstractValidate;
 import as.pa2.protocol.PiRequest;
 import javax.swing.SwingWorker;
 
@@ -15,20 +16,19 @@ import javax.swing.SwingWorker;
  */
 public class ClientGUI extends javax.swing.JFrame {
     
-    
     private Client clientobj;
     private boolean estado = false;
+    private AbstractValidate validator;
     
     long precisionLong;
-    int delayInt;
-    
+    int delayInt;   
     
     /**
      * Creates new form ClientGUI
      */
     public ClientGUI() {
         initComponents();
-        
+        validator = new AbstractValidate();
     }
 
     /**
@@ -44,8 +44,8 @@ public class ClientGUI extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
-        loadBalancerIP = new javax.swing.JTextField();
-        loadBalancerPort = new javax.swing.JTextField();
+        jLoadBalancerIP = new javax.swing.JTextField();
+        jLoadBalancerPort = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         jButton2 = new javax.swing.JButton();
         jLabel5 = new javax.swing.JLabel();
@@ -72,9 +72,9 @@ public class ClientGUI extends javax.swing.JFrame {
 
         jLabel3.setText("Load-Balancer Port:");
 
-        loadBalancerIP.setText("5000");
+        jLoadBalancerIP.setText("127.0.0.1");
 
-        loadBalancerPort.setText("5000");
+        jLoadBalancerPort.setText("5000");
 
         jLabel4.setText("________________________________________________________________________________________________");
 
@@ -138,11 +138,11 @@ public class ClientGUI extends javax.swing.JFrame {
                                 .addGap(40, 40, 40)
                                 .addComponent(jLabel2)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(loadBalancerIP, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLoadBalancerIP, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jLabel3)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(loadBalancerPort, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(jLoadBalancerPort, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -164,9 +164,9 @@ public class ClientGUI extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(loadBalancerIP, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLoadBalancerIP, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3)
-                    .addComponent(loadBalancerPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jLoadBalancerPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jButton1)
@@ -195,24 +195,35 @@ public class ClientGUI extends javax.swing.JFrame {
         new SwingWorker<Client, Object> (){
             @Override
             protected Client doInBackground() throws Exception {
+                
                 if (estado == false){
-                    try{
-                        estado = true;
-                        loadBalancerIP.setEnabled(false);
-                        loadBalancerPort.setEnabled(false);
-                        System.out.println("Client Started");
-                        jLogs.append("Client Started \n");
-                        jLogs.append("Client connected with Load-balancer on IP: " + "x" + "and IP: " + "y" +  "\n");
-                        
-                        clientobj = new Client(); 
-                        
-                        return clientobj;
-                        
-                    }catch(Exception e){
-                        jLogs.append("Error starting Client");
-                        return null;
-                    }
                     
+                    String loadBalanerIP = jLoadBalancerIP.getText();
+                    String loadBalancerPort = jLoadBalancerPort.getText();
+                               
+                    if(!validator.validateIP(loadBalanerIP)){
+                        jLogs.append("Load Balancer IP is not valid! \n");
+                        return null;
+                    }else if(!validator.validatePort(loadBalancerPort)){
+                        jLogs.append("Load Balancer Port is not valid! \n");
+                        return null;
+                    }else{
+                        try{
+                            estado = true;
+                            jLoadBalancerIP.setEnabled(false);
+                            jLoadBalancerPort.setEnabled(false);
+                            jLogs.append("Client Started \n");
+                            jLogs.append("Client connected with Load-balancer with IP: " + loadBalanerIP + " on port: " + loadBalancerPort +  "\n");
+
+                            clientobj = new Client(); 
+
+                            return clientobj;
+
+                        }catch(Exception e){
+                            jLogs.append("Error starting Client");
+                            return null;
+                        }
+                    }
                 }else{
                     jLogs.append("Server already started \n");
                     return null;
@@ -225,7 +236,7 @@ public class ClientGUI extends javax.swing.JFrame {
          new SwingWorker<Client, Object> (){
             @Override
             protected Client doInBackground() throws Exception {
-                if (estado == true){
+                if (estado){
                     String precision = jPrecisionField.getText();
                     String delay = jDelayField.getText();
                     
@@ -244,7 +255,6 @@ public class ClientGUI extends javax.swing.JFrame {
                     PiRequest request = new PiRequest(1, 1, 1, precisionLong, delayInt);
                     
                     try{
-                        //clientobj.toString();
                         clientobj.sendMessage(request);
                     }catch(Exception e){
                         System.out.println(e);
@@ -262,8 +272,26 @@ public class ClientGUI extends javax.swing.JFrame {
     }//GEN-LAST:event_jButton3ActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        loadBalancerIP.setEnabled(true);
-        loadBalancerPort.setEnabled(true);
+        new SwingWorker<Client, Object> (){
+            @Override
+            protected Client doInBackground() throws Exception {
+                if (!estado){
+                    jLogs.append("Client is already down \n");
+                    return null;
+                }else{
+                    estado = false;
+                    jLogs.append("Connection ended by client \n");
+
+                    jLoadBalancerIP.setEnabled(true);
+                jLoadBalancerPort.setEnabled(true);
+
+                    clientobj.stop();
+
+                    return clientobj;
+                }
+            }
+        }.execute();
+        
     }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
@@ -313,10 +341,10 @@ public class ClientGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
+    private javax.swing.JTextField jLoadBalancerIP;
+    private javax.swing.JTextField jLoadBalancerPort;
     private javax.swing.JTextArea jLogs;
     private javax.swing.JTextField jPrecisionField;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField loadBalancerIP;
-    private javax.swing.JTextField loadBalancerPort;
     // End of variables declaration//GEN-END:variables
 }
