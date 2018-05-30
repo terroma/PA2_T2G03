@@ -8,8 +8,6 @@ package as.pa2.gui;
 import as.pa2.client.Client;
 import as.pa2.gui.validation.AbstractValidate;
 import as.pa2.protocol.PiRequest;
-import as.pa2.server.Server;
-import java.util.regex.Pattern;
 import javax.swing.SwingWorker;
 
 /**
@@ -18,16 +16,12 @@ import javax.swing.SwingWorker;
  */
 public class ClientGUI extends javax.swing.JFrame {
     
-    
     private Client clientobj;
     private boolean estado = false;
     private AbstractValidate validator;
     
     long precisionLong;
-    int delayInt;
-    
-    int loadBalanerPortInt;
-    
+    int delayInt;   
     
     /**
      * Creates new form ClientGUI
@@ -202,24 +196,15 @@ public class ClientGUI extends javax.swing.JFrame {
             @Override
             protected Client doInBackground() throws Exception {
                 
-
                 if (estado == false){
                     
                     String loadBalanerIP = jLoadBalancerIP.getText();
                     String loadBalancerPort = jLoadBalancerPort.getText();
-                    
-                    
-                    try{
-                        loadBalanerPortInt = Integer.parseInt(loadBalancerPort);
-                    }catch(Exception e){
-                        jLogs.append("Load Balancer Port is not valid! \n");
-                        return null;
-                    }
-                    
+                               
                     if(!validator.validateIP(loadBalanerIP)){
                         jLogs.append("Load Balancer IP is not valid! \n");
                         return null;
-                    }else if(loadBalanerPortInt>=65535 || loadBalanerPortInt<=1024){
+                    }else if(!validator.validatePort(loadBalancerPort)){
                         jLogs.append("Load Balancer Port is not valid! \n");
                         return null;
                     }else{
@@ -251,7 +236,7 @@ public class ClientGUI extends javax.swing.JFrame {
          new SwingWorker<Client, Object> (){
             @Override
             protected Client doInBackground() throws Exception {
-                if (estado == true){
+                if (estado){
                     String precision = jPrecisionField.getText();
                     String delay = jDelayField.getText();
                     
@@ -270,7 +255,6 @@ public class ClientGUI extends javax.swing.JFrame {
                     PiRequest request = new PiRequest(1, 1, 1, precisionLong, delayInt);
                     
                     try{
-                        //clientobj.toString();
                         clientobj.sendMessage(request);
                     }catch(Exception e){
                         System.out.println(e);
@@ -291,7 +275,7 @@ public class ClientGUI extends javax.swing.JFrame {
         new SwingWorker<Client, Object> (){
             @Override
             protected Client doInBackground() throws Exception {
-                if (estado == false){
+                if (!estado){
                     jLogs.append("Client is already down \n");
                     return null;
                 }else{

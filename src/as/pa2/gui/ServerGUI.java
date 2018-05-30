@@ -7,6 +7,7 @@ package as.pa2.gui;
 
 import as.pa2.gui.validation.AbstractValidate;
 import as.pa2.server.Server;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 /**
@@ -193,7 +194,7 @@ public class ServerGUI extends javax.swing.JFrame {
         new SwingWorker<Server, Object> (){
             @Override
             protected Server doInBackground() throws Exception {
-                if (estado == false){
+                if (!estado){
                     
                     String serverIP = jServerIP.getText();
                     String serverPort = jServerPort.getText();
@@ -201,25 +202,23 @@ public class ServerGUI extends javax.swing.JFrame {
                     String monitorPort = jMonitorPort.getText();
                     String loadBPort = jLoadBPort.getText();
                     String queueSize = jQueueSize.getText();
-                    
-                   
-                    
-                    if(validator.validateIP(serverIP)==false){
+                                   
+                    if(!validator.validateIP(serverIP)){
                         JLogs.append("Server IP is not valid! \n");
                         return null;
-                    }else if(validator.validatePort(serverPort)){
+                    }else if(!validator.validatePort(serverPort)){
                         JLogs.append("Server Port is not valid! \n");
                         return null;
-                    }else if(validator.validateIP(monitorIP)==false){
+                    }else if(!validator.validateIP(monitorIP)){
                         JLogs.append("Monitor IP is not valid! \n");
                         return null;
-                    }else if(validator.validatePort(monitorPort)){
+                    }else if(!validator.validatePort(monitorPort)){
                         JLogs.append("Monitor Port is not valid! \n");
                         return null;
-                    }else if(validator.validatePort(loadBPort)){
+                    }else if(!validator.validatePort(loadBPort)){
                         JLogs.append("Load Balancer Port is not valid! \n");
                         return null;
-                    }else if (validator.validateQueueSize(queueSize)){
+                    }else if (!validator.validateQueueSize(queueSize)){
                         JLogs.append("Queue Size is not valid! \n");
                         return null;
                     }else if(serverIP.equals(monitorIP)){
@@ -262,7 +261,7 @@ public class ServerGUI extends javax.swing.JFrame {
         new SwingWorker<Server, Object> (){
             @Override
             protected Server doInBackground() throws Exception {
-                if (estado == false){
+                if (!estado){
                     JLogs.append("Server is already down \n");
                     return null;
                 }else{

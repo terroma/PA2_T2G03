@@ -5,8 +5,9 @@
  */
 package as.pa2.gui;
 
-import as.pa2.client.Client;
+import as.pa2.gui.validation.AbstractValidate;
 import as.pa2.monitor.Monitor;
+import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 /**
@@ -17,17 +18,41 @@ public class MonitorLBGUI extends javax.swing.JFrame {
     
     private Monitor monitor;
     private boolean estado = false;
-    
-    int clientePortInt;
-    int serverPortInt;
+    private AbstractValidate validator;
+
     
     /**
      * Creates new form MonitorLBGUI
      */
     public MonitorLBGUI() {
         initComponents();
+        validator = new AbstractValidate();
     }
 
+    /*
+    * Updates server list
+    */
+    public void updateServerList(String line){
+        SwingUtilities.invokeLater(new Runnable(){
+            @Override
+            public void run(){
+                jServerList.append(line + " \n");
+            }
+        });
+    } 
+    
+    /*
+    * Updates server list
+    */
+    public void updateLogs(String line){
+        SwingUtilities.invokeLater(new Runnable(){
+            @Override
+            public void run(){
+                jLogs.append(line + " \n");
+            }
+        });
+    } 
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -42,7 +67,7 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jLogs = new javax.swing.JTextArea();
         jScrollPane2 = new javax.swing.JScrollPane();
-        jTextArea2 = new javax.swing.JTextArea();
+        jServerList = new javax.swing.JTextArea();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
         jClientPort = new javax.swing.JTextField();
@@ -66,9 +91,9 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         jLogs.setRows(5);
         jScrollPane1.setViewportView(jLogs);
 
-        jTextArea2.setColumns(20);
-        jTextArea2.setRows(5);
-        jScrollPane2.setViewportView(jTextArea2);
+        jServerList.setColumns(20);
+        jServerList.setRows(5);
+        jScrollPane2.setViewportView(jServerList);
 
         jLabel1.setFont(new java.awt.Font("Dialog", 0, 18)); // NOI18N
         jLabel1.setText("Monitor and Load Balancer");
@@ -93,6 +118,11 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         jLabel5.setText("Logs:");
 
         jButton2.setText("Stop");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
 
         jLabel6.setText("Monitor IP:");
 
@@ -106,7 +136,6 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSeparator1)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -133,22 +162,19 @@ public class MonitorLBGUI extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jServerPort)
                             .addComponent(jLoadBalancerIP, javax.swing.GroupLayout.PREFERRED_SIZE, 170, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 0, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel4)
-                                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(28, 28, 28)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 426, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel5)))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 101, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 100, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addComponent(jLabel4)
+                            .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel5)
+                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -162,19 +188,17 @@ public class MonitorLBGUI extends javax.swing.JFrame {
                     .addComponent(jLabel7)
                     .addComponent(jMonitorIP, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLoadBalancerIP, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(jLabel3)
                     .addComponent(jServerPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jClientPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(25, 25, 25)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jClientPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jButton2)
                     .addComponent(jButton1)
-                    .addComponent(jButton2))
+                    .addComponent(jLabel3))
                 .addGap(18, 18, 18)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(jLabel5))
@@ -182,7 +206,7 @@ public class MonitorLBGUI extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap())
+                .addGap(12, 12, 12))
         );
 
         pack();
@@ -192,52 +216,45 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         new SwingWorker<Monitor, Object> (){
             @Override
             protected Monitor doInBackground() throws Exception {
-                 if (estado == false){
+                 if (!estado){
+                          
+                    estado = true;
                     
                     String monitorIP = jMonitorIP.getText();
                     String loadBalancerIP = jLoadBalancerIP.getText();
-                    String clientePort = jClientPort.getText();
+                    String clientPort = jClientPort.getText();
                     String serverPort = jServerPort.getText();
                     
-                    
-                    try{
-                        clientePortInt = Integer.parseInt(clientePort);
-                    }catch(Exception e){
-                        jLogs.append("Cliente Port is not valid! \n");
+                    if(!validator.validateIP(monitorIP)){
+                        jLogs.append("Monitor IP is not valid! \n");
                         return null;
-                    }
-                    try{
-                        serverPortInt = Integer.parseInt(serverPort);
-                    }catch(Exception e){
-                        jLogs.append("Server Port is not valid! \n");
+                    }else if(!validator.validateIP(loadBalancerIP)){
+                        jLogs.append("Load Balancer IP is not valid! \n");
                         return null;
-                    }
-                    
-                    if(clientePort.equals(serverPort)){
-                        jLogs.append("Client Port can't be equal to ServerPort! \n");
-                        return null;   
-                    }else if(clientePortInt>=65535 || clientePortInt<=1024){
+                    }else if(!validator.validatePort(clientPort)){
                         jLogs.append("Client Port is not valid! \n");
                         return null;
-                    }else if(serverPortInt>=65535 || serverPortInt<=1024){
+                    }else if(!validator.validatePort(serverPort)){
                         jLogs.append("Server Port is not valid! \n");
                         return null;
+                    }else if(!validator.validateMLBfields(monitorIP, loadBalancerIP, clientPort, serverPort)){
+                        jLogs.append("Monitor and Load Balancer need to have different ports if they are on the same ip address! \n");
+                        return null;
                     }else{
-                        jLogs.append("Monitor and LB started! \n");
-                        monitor= new Monitor("127.0.0.2", serverPortInt);
+                        
+                        jMonitorIP.setEnabled(false);
+                        jLoadBalancerIP.setEnabled(false);
+                        jClientPort.setEnabled(false);
+                        jServerPort.setEnabled(false);
+                                              
+                        jLogs.append("Monitor and Load Balancer started! \n");
+                        monitor= new Monitor("127.0.0.2", Integer.parseInt(serverPort));
                         monitor.run();
                         return monitor;
                     }
                 }else{
-                    estado = false;
-                    jLogs.append("Monitor and Load Balancer stoped! \n");
-
-                    //jLoadBalancerIP.setEnabled(true);
-               // jLoadBalancerPort.setEnabled(true);
-
-                    monitor.shutdown();
-
-                    return monitor;
+                    jLogs.append("Monitor and Load Balancer have alredy started! \n");
+                    return null;
                 }
             }
         }.execute();
@@ -246,6 +263,32 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         
         
     }//GEN-LAST:event_jButton1ActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        new SwingWorker<Monitor, Object> (){
+            @Override
+            protected Monitor doInBackground() throws Exception {
+                 if (estado){
+                     
+                    estado=false;
+                   
+                    jMonitorIP.setEnabled(true);
+                    jLoadBalancerIP.setEnabled(true);
+                    jClientPort.setEnabled(true);
+                    jServerPort.setEnabled(true);
+                        
+                    jLogs.append("Monitor and Load Balancer stoped! \n");
+                    
+                    monitor.shutdown();
+                     
+                    return monitor;
+                 }else{
+                     jLogs.append("Monitor and Load Balancer alredy stoped! \n");
+                     return null;
+                 }
+            }
+        }.execute();     
+    }//GEN-LAST:event_jButton2ActionPerformed
 
     /**
      * @param args the command line arguments
@@ -300,8 +343,8 @@ public class MonitorLBGUI extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JTextArea jServerList;
     private javax.swing.JTextField jServerPort;
-    private javax.swing.JTextArea jTextArea2;
     private javax.swing.JTree jTree1;
     // End of variables declaration//GEN-END:variables
 }

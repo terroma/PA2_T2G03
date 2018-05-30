@@ -27,7 +27,7 @@ public class AbstractValidate implements IFValidate{
     public boolean validatePort(final String port) {
         int portInt;
         try{
-            portInt = Integer.parseInt(port);      
+            portInt = Integer.parseInt(port);
         }catch(Exception e){
             System.out.println("Error converting String to Int");
             return false;
@@ -48,6 +48,16 @@ public class AbstractValidate implements IFValidate{
         }
         if(queueSizeInt<1){
             return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean validateMLBfields(String monitorIP, String loadBalancerIP, String clientPort, String serverPort) {
+        if(monitorIP.equals(loadBalancerIP)){
+            if(clientPort.equals(serverPort)){
+                return false;
+            }
         }
         return true;
     }
