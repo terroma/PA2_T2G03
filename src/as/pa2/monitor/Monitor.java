@@ -67,6 +67,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
     public Monitor(String ip, int port) {
         this.ip = ip;
         this.port = port;
+        this.isStopped = false;
         setupPingTask();
     }
     
@@ -75,6 +76,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
         this.port = port;
         this.ping = ping;
         this.pingStrategy = pingStrategy;
+        this.isStopped = false;
         setupPingTask();
     }
     
@@ -128,7 +130,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                     break;
                 }
                 throw new RuntimeException(
-                        "Monitor: Error accepting server connection.",ioe);
+                        "[!] Monitor: Error accepting server connection.",ioe);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Monitor.class.getName()).log(Level.SEVERE, null, ex);
             }

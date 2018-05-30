@@ -128,7 +128,7 @@ public class Server implements Serializable, Runnable {
     public synchronized void stop() {
         this.isStopped = true;
         try {
-            System.out.println("Server Stoped!");
+            System.out.println("Server Stopped!");
             this.serverSocket.close();
             
         } catch (IOException ioe) {

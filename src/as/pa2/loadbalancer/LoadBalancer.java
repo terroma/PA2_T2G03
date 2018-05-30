@@ -5,39 +5,28 @@
  */
 package as.pa2.loadbalancer;
 
-import as.pa2.monitor.availability.IFPing;
-import as.pa2.monitor.availability.IFPingStrategy;
-import as.pa2.monitor.availability.SerialPing;
-import as.pa2.monitor.availability.SerialPingStrategy;
-import as.pa2.monitor.listeners.ServerListChangeListener;
-import as.pa2.monitor.listeners.ServerStatusChangeListener;
 import as.pa2.loadbalancer.strategies.IFRule;
 import as.pa2.loadbalancer.strategies.RoundRobinRule;
-import as.pa2.monitor.AbstractMonitor;
 import as.pa2.monitor.Monitor;
+import as.pa2.protocol.PiRequest;
 import as.pa2.server.Server;
-import as.pa2.server.ServerComparator;
+import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import static java.util.Collections.singleton;
-import java.util.Comparator;
+import java.net.Socket;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Load-Balancer Implementation.
  *
  * @author terroma
  */
-public class LoadBalancer implements IFLoadBalancer {
+public class LoadBalancer implements IFLoadBalancer, Runnable{
     
     private final static IFRule DEFAULT_RULE = new RoundRobinRule();
     private static final String DEFAULT_NAME = "lb-default";
@@ -53,14 +42,25 @@ public class LoadBalancer implements IFLoadBalancer {
     protected int port;
     protected ServerSocket socket;
     
+    protected boolean isStopped;
+    
+    protected ExecutorService clientConnnectionsPool;
+    
+    protected LinkedBlockingQueue<PiRequest> requestQueue = new LinkedBlockingQueue<PiRequest>();
+    protected ConcurrentHashMap<Integer,ClientConnection> clientConnections = new ConcurrentHashMap<Integer, ClientConnection>();
+    
     public LoadBalancer() {
         this.name = DEFAULT_NAME;
+        this.isStopped = false;
         setRule(DEFAULT_RULE);
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
     }
     
     public LoadBalancer(String name, IFRule rule) {
         this.name = name;
-        setRule(rule);        
+        this.isStopped = false;
+        setRule(rule);    
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
     }
      
     @Override
@@ -132,6 +132,54 @@ public class LoadBalancer implements IFLoadBalancer {
     //            .append(", current list of servers=").append(this.allServersList)
                 .append("}");
         return sb.toString();
+    }
+
+    @Override
+    public void run() {
+        openClientsSocket();
+        System.out.println("[*] LoadBalancer Started ...");
+        int clientCount = 0;
+        while (!isStopped()) {
+            /* handle client connections */
+            Socket clientSocket = null;
+            try {
+                clientSocket = this.socket.accept();
+                System.out.println("[*] LoadBalancer recieved new client Connection.");
+                ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount++);
+                clientConnections.put(clientCount, newConnection);
+                this.clientConnnectionsPool.execute(newConnection);
+                
+            } catch (IOException ioe) {
+                if (isStopped()) {
+                    System.out.println("[*] LoabBalancer Stopped!");
+                    break;
+                }
+                throw new RuntimeException("[!] LoadBalancer: Error accepting connections from clients.",ioe);
+            }
+        }
+    }
+    
+    private synchronized boolean isStopped() {
+        return this.isStopped;
+    }
+    
+    public synchronized void stop() {
+        this.isStopped = true;
+        try {
+            System.out.println("LoabBalancer Stopped!");
+            this.socket.close();
+        } catch (IOException ioe) {
+            throw new RuntimeException("Error closing LoadBalancer",ioe);
+        }
+    }
+    
+    private void openClientsSocket() {
+        try {
+            this.socket = new ServerSocket(this.port, 100, InetAddress.getByName(this.ip));
+        } catch (IOException ioe) {
+            throw new RuntimeException(
+                    "Cannot open port "+this.port+"!", ioe);
+        }
     }
     
 }

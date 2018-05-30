@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  *
  * @author terroma
  */
-public class RequestHandler implements Runnable, Serializable {
+public class RequestHandler implements Runnable {
 
     protected Socket clientSocket;
     protected int serverId;

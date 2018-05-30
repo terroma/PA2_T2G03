@@ -47,8 +47,6 @@ public class Client {
             
             System.out.println("[*] Client["+clientId+"] Connected on port:"+connectedPort);
             
-            
-            
             this.oOutStream = new ObjectOutputStream(tcpSocket.getOutputStream());
 
             (new Thread(new InputListeningThread())).start();
