@@ -5,6 +5,7 @@
  */
 package as.pa2.server;
 
+import as.pa2.gui.ServerGUI;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
@@ -14,8 +15,6 @@ import java.net.Socket;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -42,6 +41,9 @@ public class Server implements Serializable, Runnable {
     private String monitorIp;
     private int monitorPort;
     private int loadBalancerPort;
+    private int queueSize;
+    
+    private transient ServerGUI serverGUI;
     
     /* default server constructor */
     public Server() {
@@ -66,6 +68,7 @@ public class Server implements Serializable, Runnable {
         this.monitorIp = monitorIp;
         this.monitorPort = monitorPort;
         this.loadBalancerPort = loadBalancerPort;
+        this.queueSize = queueSize;
         
         this.threadPool = Executors.newFixedThreadPool(queueSize);
         System.out.println(host + " : " + port);
@@ -75,6 +78,10 @@ public class Server implements Serializable, Runnable {
     public Server(String id) {
         setId(id);
         isAliveFlag = false;
+    }
+    
+    public Server(ServerGUI serverGUI){
+        this.serverGUI = serverGUI;
     }
     
     @Override
@@ -204,6 +211,40 @@ public class Server implements Serializable, Runnable {
     public final void setReadyToServe(boolean readyToServe) {
         this.readyToServe = readyToServe;
     }
+
+    public String getMonitorIp() {
+        return monitorIp;
+    }
+
+    public void setMonitorIp(String monitorIp) {
+        this.monitorIp = monitorIp;
+    }
+
+    public int getMonitorPort() {
+        return monitorPort;
+    }
+
+    public void setMonitorPort(int monitorPort) {
+        this.monitorPort = monitorPort;
+    }
+
+    public int getLoadBalancerPort() {
+        return loadBalancerPort;
+    }
+
+    public void setLoadBalancerPort(int loadBalancerPort) {
+        this.loadBalancerPort = loadBalancerPort;
+    }
+
+    public int getQueueSize() {
+        return queueSize;
+    }
+
+    public void setQueueSize(int queueSize) {
+        this.queueSize = queueSize;
+    }
+    
+    
     
     @Override
     public String toString() {
@@ -228,7 +269,7 @@ public class Server implements Serializable, Runnable {
     }
     
     public static void main(String[] args) {
-        Server s = new Server("127.0.0.1", 5000, "", 0,0,0);
+        Server s = new Server("127.0.0.1", 5000, "127.0.0.2", 5000,0,10);
         s.run();
     }
 }

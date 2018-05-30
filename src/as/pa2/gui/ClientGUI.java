@@ -29,6 +29,7 @@ public class ClientGUI extends javax.swing.JFrame {
     public ClientGUI() {
         initComponents();
         validator = new AbstractValidate();
+        clientobj = new Client(this);
     }
 
     /**
@@ -87,6 +88,7 @@ public class ClientGUI extends javax.swing.JFrame {
 
         jLabel5.setText("Request");
 
+        jLogs.setEditable(false);
         jLogs.setColumns(20);
         jLogs.setRows(5);
         jScrollPane1.setViewportView(jLogs);
@@ -209,13 +211,15 @@ public class ClientGUI extends javax.swing.JFrame {
                         return null;
                     }else{
                         try{
+                            
                             estado = true;
                             jLoadBalancerIP.setEnabled(false);
                             jLoadBalancerPort.setEnabled(false);
                             jLogs.append("Client Started \n");
                             jLogs.append("Client connected with Load-balancer with IP: " + loadBalanerIP + " on port: " + loadBalancerPort +  "\n");
 
-                            clientobj = new Client(); 
+                            clientobj.setLoadBalancerIP(loadBalanerIP);
+                            clientobj.setLoadBalancerPort(Integer.parseInt(loadBalancerPort));
 
                             return clientobj;
 
