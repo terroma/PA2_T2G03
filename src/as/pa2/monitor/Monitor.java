@@ -5,6 +5,7 @@
  */
 package as.pa2.monitor;
 
+import as.pa2.gui.MonitorLBGUI;
 import as.pa2.monitor.availability.IFPing;
 import as.pa2.monitor.availability.IFPingStrategy;
 import as.pa2.monitor.availability.SerialPingStrategy;
@@ -64,6 +65,8 @@ public class Monitor extends AbstractMonitor implements Runnable {
     protected ServerSocket monitorSocket;
     protected boolean isStopped;
     
+    private MonitorLBGUI monitorLBGui;
+    
     public Monitor(String ip, int port) {
         this.ip = ip;
         this.port = port;
@@ -78,6 +81,10 @@ public class Monitor extends AbstractMonitor implements Runnable {
         this.pingStrategy = pingStrategy;
         this.isStopped = false;
         setupPingTask();
+    }
+    
+    public Monitor(MonitorLBGUI monitorLbGui){
+        this.monitorLBGui = monitorLbGui;
     }
     
     /**
@@ -335,6 +342,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
         } finally {
             writeLock.unlock();
             System.out.println(allServersList.toString());
+            monitorLBGui.updateServerList(getAllServers());
         }
     }
     
@@ -366,6 +374,22 @@ public class Monitor extends AbstractMonitor implements Runnable {
             this.ping = null;
             lbTimer.cancel();
         }
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
     }
     
     public Server getServerByIndex(int index, boolean availableOnly) {

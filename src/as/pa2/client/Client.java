@@ -1,5 +1,6 @@
 package as.pa2.client;
 
+import as.pa2.gui.ClientGUI;
 import as.pa2.protocol.PiRequest;
 import as.pa2.protocol.PiResponse;
 import java.io.IOException;
@@ -16,12 +17,15 @@ public class Client {
 
     private InetAddress connectedAddress;
     private Socket tcpSocket;
-    private int connectedPort;
+    private int loadBalancerPort;
+    private String loadBalancerIP;
     private ObjectInputStream oInStream;
     private ObjectOutputStream oOutStream;
     
     private int clientId;
     private UUID uniqueClientId = UUID.randomUUID();
+    
+    private ClientGUI clientGUI;
     
     /* default client constructor */
     public Client() throws IOException {
@@ -31,18 +35,23 @@ public class Client {
     
     public Client(String loadBalancerIP, int loadNBalancerPort) {
         this.clientId = uniqueClientId.hashCode();
+        this.loadBalancerIP = loadBalancerIP;
+        this.loadBalancerPort = loadNBalancerPort;
         initClient(loadBalancerIP, loadNBalancerPort);
     }
     
+    public Client(ClientGUI clienteGUI){
+        this.clientGUI = clientGUI;
+    }
     
     private void initClient(String host, int port) {
         try {
             System.out.println("[*] Starting Client["+clientId+"] ...");
             this.connectedAddress = Inet4Address.getByName(host);
-            this.connectedPort = port;
+            this.loadBalancerPort = port;
             this.tcpSocket = new Socket(host, port);
             
-            System.out.println("[*] Client["+clientId+"] Connected on port:"+connectedPort);
+            System.out.println("[*] Client["+clientId+"] Connected on port:"+loadBalancerPort);
             
             this.oOutStream = new ObjectOutputStream(tcpSocket.getOutputStream());
 
@@ -123,6 +132,22 @@ public class Client {
         }
     }
 
+    public int getLoadBalancerPort() {
+        return loadBalancerPort;
+    }
+
+    public void setLoadBalancerPort(int loadBalancerPort) {
+        this.loadBalancerPort = loadBalancerPort;
+    }
+
+    public String getLoadBalancerIP() {
+        return loadBalancerIP;
+    }
+
+    public void setLoadBalancerIP(String loadBalancerIP) {
+        this.loadBalancerIP = loadBalancerIP;
+    }
+    
     public static void main(String[] args) throws IOException {
         Client c = new Client();
     }

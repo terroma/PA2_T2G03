@@ -26,6 +26,7 @@ public class ServerGUI extends javax.swing.JFrame {
     public ServerGUI() {
         initComponents();
         validator = new AbstractValidate();
+        serverobj = new Server(this);
     }
     
     /**
@@ -94,6 +95,7 @@ public class ServerGUI extends javax.swing.JFrame {
 
         jLabel6.setText("Queue Size:");
 
+        JLogs.setEditable(false);
         JLogs.setColumns(20);
         JLogs.setRows(5);
         jScrollPane2.setViewportView(JLogs);
@@ -115,21 +117,17 @@ public class ServerGUI extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane2)
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jScrollPane2))
+                        .addGap(0, 436, Short.MAX_VALUE)
+                        .addComponent(jButton2)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton1))
                     .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(0, 436, Short.MAX_VALUE)
-                                .addComponent(jButton2)
-                                .addGap(18, 18, 18)
-                                .addComponent(jButton1))
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addGap(0, 0, Short.MAX_VALUE)))))
+                        .addComponent(jLabel1)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
             .addGroup(layout.createSequentialGroup()
                 .addGap(45, 45, 45)
@@ -243,8 +241,15 @@ public class ServerGUI extends javax.swing.JFrame {
                         JLogs.append("Server connected Load-balancer on Port: " + loadBPort + " \n");
                         JLogs.append("Server queue size is " + queueSize + " \n");
                         JLogs.append("-------------------------------------------------------------------------------------------------------------------- \n");
-                           
-                        serverobj = new Server(serverIP, Integer.parseInt(serverPort), monitorIP, Integer.parseInt(monitorPort), Integer.parseInt(loadBPort), Integer.parseInt(queueSize));
+                                                
+                        serverobj.setHost(serverIP);
+                        serverobj.setPort(Integer.parseInt(serverPort));
+                        serverobj.setMonitorIp(monitorIP);
+                        serverobj.setMonitorPort(Integer.parseInt(monitorPort));
+                        serverobj.setLoadBalancerPort(Integer.parseInt(loadBPort));
+                        serverobj.setQueueSize(Integer.parseInt(queueSize));
+                                
+                        //serverobj = new Server(serverIP, Integer.parseInt(serverPort), monitorIP, Integer.parseInt(monitorPort), Integer.parseInt(loadBPort), Integer.parseInt(queueSize));
                         serverobj.run();
                         
                         return serverobj;

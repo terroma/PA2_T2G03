@@ -7,6 +7,8 @@ package as.pa2.gui;
 
 import as.pa2.gui.validation.AbstractValidate;
 import as.pa2.monitor.Monitor;
+import as.pa2.server.Server;
+import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
@@ -27,16 +29,21 @@ public class MonitorLBGUI extends javax.swing.JFrame {
     public MonitorLBGUI() {
         initComponents();
         validator = new AbstractValidate();
+        this.monitor = new Monitor(this);
     }
 
     /*
     * Updates server list
     */
-    public void updateServerList(String line){
+    public void updateServerList(List<Server> list){
         SwingUtilities.invokeLater(new Runnable(){
             @Override
             public void run(){
-                jServerList.append(line + " \n");
+                jServerList.setText("");
+                System.out.println(list.toString());
+                for(Server srv : list) {
+                   jServerList.append(srv.getId() + " " + (srv.isAlive() ? "ALIVE\n" : "DEAD\n"));
+                } 
             }
         });
     } 
@@ -48,7 +55,7 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         SwingUtilities.invokeLater(new Runnable(){
             @Override
             public void run(){
-                jLogs.append(line + " \n");
+               jLogs.append(line + " \n");
             }
         });
     } 
@@ -87,10 +94,12 @@ public class MonitorLBGUI extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        jLogs.setEditable(false);
         jLogs.setColumns(20);
         jLogs.setRows(5);
         jScrollPane1.setViewportView(jLogs);
 
+        jServerList.setEditable(false);
         jServerList.setColumns(20);
         jServerList.setRows(5);
         jScrollPane2.setViewportView(jServerList);
@@ -248,7 +257,8 @@ public class MonitorLBGUI extends javax.swing.JFrame {
                         jServerPort.setEnabled(false);
                                               
                         jLogs.append("Monitor and Load Balancer started! \n");
-                        monitor= new Monitor("127.0.0.2", Integer.parseInt(serverPort));
+                        monitor.setIp(monitorIP);
+                        monitor.setPort(Integer.parseInt(serverPort));
                         monitor.run();
                         return monitor;
                     }
