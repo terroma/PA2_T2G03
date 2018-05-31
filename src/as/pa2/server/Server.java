@@ -94,6 +94,7 @@ public class Server implements Serializable, Runnable {
                     + "Accepted Connection: "+clientSocket.getInetAddress().getHostAddress()
                         +":"+clientSocket.getPort());
                 this.threadPool.execute(new RequestHandler(clientSocket, this.serverId));
+               
             } catch (IOException ioe) {
                 if (isStopped()) {
                     System.out.println("Server Stopped.");
@@ -228,7 +229,7 @@ public class Server implements Serializable, Runnable {
     }
     
     public static void main(String[] args) {
-        Server s = new Server("127.0.0.1", 5000, "", 0,0,0);
+        Server s = new Server("127.0.0.6", 5000, "127.0.0.2", 5000,0,10);
         s.run();
     }
 }

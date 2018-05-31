@@ -7,7 +7,12 @@ package as.pa2.monitor.availability;
 
 import as.pa2.server.Server;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NoRouteToHostException;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 
 /**
  *
@@ -21,7 +26,7 @@ public class SerialPing extends AbstractMonitorPing {
         boolean alive = false;
         try {
             addr = InetAddress.getByName(server.getHost());
-            alive = addr.isReachable(5000) ? true : false;
+            alive = hasService(addr, server.getPort());
             return alive;
         } catch (IOException e) {
             e.printStackTrace();
@@ -29,4 +34,17 @@ public class SerialPing extends AbstractMonitorPing {
         }
     }
     
+    private boolean hasService(InetAddress host, int port) throws IOException {
+        boolean alive = false;
+        Socket sock = new Socket();
+        
+        try {
+            sock.connect(new InetSocketAddress(host, port), 200);
+            if (sock.isConnected()) {
+                sock.close();
+                alive = true;
+            }
+        } catch (ConnectException | NoRouteToHostException | SocketTimeoutException ex) {  }
+        return alive;
+    }
 }

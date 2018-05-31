@@ -8,7 +8,12 @@ package as.pa2.loadbalancer;
 import as.pa2.loadbalancer.strategies.IFRule;
 import as.pa2.loadbalancer.strategies.RoundRobinRule;
 import as.pa2.monitor.Monitor;
+import as.pa2.monitor.availability.ParallelPing;
+import as.pa2.monitor.availability.ParallelPingStategy;
+import as.pa2.monitor.availability.SerialPing;
+import as.pa2.monitor.availability.SerialPingStrategy;
 import as.pa2.protocol.PiRequest;
+import as.pa2.protocol.PiResponse;
 import as.pa2.server.Server;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -20,6 +25,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Load-Balancer Implementation.
@@ -45,15 +52,21 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
     protected boolean isStopped;
     
     protected ExecutorService clientConnnectionsPool;
+    protected ExecutorService serverConnectionsPool;
     
     protected LinkedBlockingQueue<PiRequest> requestQueue = new LinkedBlockingQueue<PiRequest>();
     protected ConcurrentHashMap<Integer,ClientConnection> clientConnections = new ConcurrentHashMap<Integer, ClientConnection>();
+    protected ConcurrentHashMap<Server,Socket> serverConnections = new ConcurrentHashMap<Server,Socket>();
+    protected ConcurrentHashMap<PiRequest,PiResponse> handledRequests = new ConcurrentHashMap<PiRequest,PiResponse>();
     
-    public LoadBalancer() {
+    public LoadBalancer(String ip, int port) {
         this.name = DEFAULT_NAME;
         this.isStopped = false;
         setRule(DEFAULT_RULE);
+        this.ip = ip;
+        this.port = port;
         this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
+        this.serverConnectionsPool = Executors.newFixedThreadPool(10);
     }
     
     public LoadBalancer(String name, IFRule rule) {
@@ -61,6 +74,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         this.isStopped = false;
         setRule(rule);    
         this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
+        this.serverConnectionsPool = Executors.newFixedThreadPool(10);
     }
      
     @Override
@@ -138,6 +152,11 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
     public void run() {
         openClientsSocket();
         System.out.println("[*] LoadBalancer Started ...");
+        
+        //monitor = new Monitor("127.0.0.2", 5000, new SerialPing(), new SerialPingStrategy());
+        monitor = new Monitor("127.0.0.2", 5000, new ParallelPing(), new ParallelPingStategy());
+        (new Thread(monitor)).start();
+        
         int clientCount = 0;
         while (!isStopped()) {
             /* handle client connections */
@@ -149,14 +168,30 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                 clientConnections.put(clientCount, newConnection);
                 this.clientConnnectionsPool.execute(newConnection);
                 
+                /* choose and handle server connections */
+                if (!requestQueue.isEmpty()) {
+                    Server choosenServer = chooseServer(this);
+                    System.out.println("[*] LoadBalancer: choosen server "+choosenServer.getId());
+                    System.out.println("[*] LoadBalancer: request queue: "+requestQueue.toString());
+                    if (!serverConnections.containsKey(choosenServer)) {
+                        Socket serverSocket = new Socket(choosenServer.getHost(),choosenServer.getPort());
+                        serverConnections.put(choosenServer, serverSocket);
+                    }
+                    this.serverConnectionsPool.execute(new ServerConnection(clientConnections, handledRequests, serverConnections.get(choosenServer), choosenServer.getId(), requestQueue.take()));   
+                }
+                
             } catch (IOException ioe) {
                 if (isStopped()) {
                     System.out.println("[*] LoabBalancer Stopped!");
                     break;
                 }
                 throw new RuntimeException("[!] LoadBalancer: Error accepting connections from clients.",ioe);
+            } catch (InterruptedException ex) {
+                System.out.println("[!] LoadBalancer: Failed to take request from queue ...");
             }
         }
+        this.clientConnnectionsPool.shutdownNow();
+        this.serverConnectionsPool.shutdownNow();
     }
     
     private synchronized boolean isStopped() {
@@ -180,6 +215,11 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
             throw new RuntimeException(
                     "Cannot open port "+this.port+"!", ioe);
         }
+    }
+    
+    public static void main(String[] args) {
+        LoadBalancer lb = new LoadBalancer("127.0.0.1",3000);
+        lb.run();
     }
     
 }

@@ -26,7 +26,7 @@ public class Client {
     /* default client constructor */
     public Client() throws IOException {
         this.clientId = uniqueClientId.hashCode();
-        initClient("127.0.0.1",5000);
+        initClient("127.0.0.1",3000);
     }
     
     public Client(String loadBalancerIP, int loadNBalancerPort) {

@@ -7,7 +7,12 @@ package as.pa2.monitor.availability;
 
 import as.pa2.server.Server;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NoRouteToHostException;
+import java.net.Socket;
+import java.net.SocketTimeoutException;
 import java.util.concurrent.Callable;
 
 /**
@@ -17,9 +22,15 @@ import java.util.concurrent.Callable;
 public class ParallelPing extends AbstractMonitorPing implements Callable<Boolean> {
 
     private String ipToPing;
+    private int portToPing;
     
-    public ParallelPing(String ipToPing) {
+    public ParallelPing() {
+        
+    }
+    
+    public ParallelPing(String ipToPing, int portToPing) {
         this.ipToPing = ipToPing;
+        this.portToPing = portToPing;
     }
     
     @Override
@@ -28,7 +39,8 @@ public class ParallelPing extends AbstractMonitorPing implements Callable<Boolea
         boolean result = false;
         try {
             addr = InetAddress.getByName(ipToPing);
-            result = addr.isReachable(5000) ? true : false;
+            result = hasService(addr, portToPing);
+            System.out.println("PingResult server:"+ipToPing+" result: "+result);
             return result;
         } catch (IOException e) {
             e.printStackTrace();
@@ -36,6 +48,19 @@ public class ParallelPing extends AbstractMonitorPing implements Callable<Boolea
         }
     }
     
+    private boolean hasService(InetAddress host, int port) throws IOException {
+        boolean alive = false;
+        Socket sock = new Socket();
+        
+        try {
+            sock.connect(new InetSocketAddress(host, port), 200);
+            if (sock.isConnected()) {
+                sock.close();
+                alive = true;
+            }
+        } catch (ConnectException | NoRouteToHostException | SocketTimeoutException ex) {  }
+        return alive;
+    }
     
     @Override
     public boolean isAlive(Server server) {

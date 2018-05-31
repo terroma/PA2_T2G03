@@ -7,6 +7,7 @@ package as.pa2.server;
 
 import as.pa2.protocol.PiRequest;
 import as.pa2.protocol.PiResponse;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -23,22 +24,26 @@ public class RequestHandler implements Runnable {
 
     protected Socket clientSocket;
     protected int serverId;
+    protected boolean isStopped;
+    protected ObjectInputStream oInStream;
+    protected ObjectOutputStream oOutStream;
     
     public RequestHandler(Socket clientSocket, int serverId) {
         this.clientSocket = clientSocket;
         this.serverId = serverId;
+        this.isStopped = false;
     }
     
     @Override
     public void run() {
         try {
-            ObjectInputStream oInStream = 
+            this.oInStream = 
                     new ObjectInputStream(clientSocket.getInputStream());
-            ObjectOutputStream oOutStream =
+            this.oOutStream =
                     new ObjectOutputStream(clientSocket.getOutputStream());
             
             long time = System.currentTimeMillis();
-            while( true ) {
+            while( !isStopped() ) {
                 System.out.println("Está à espera");
                 PiRequest request = (PiRequest) oInStream.readObject();
                 
@@ -50,14 +55,35 @@ public class RequestHandler implements Runnable {
                     System.out.println("Tenta enviar");
                     oOutStream.writeObject(response);
                     System.out.println("Enviou");
+                    oOutStream.flush();
                 }
             }
             
         } catch (IOException ioe) {
-            ioe.printStackTrace();
+            System.out.println("Closing client connection ");
+            this.isStopped = true;
+            try {
+                clientSocket.close();
+            } catch (IOException ex) {
+                ex.getMessage();
+            }
         } catch (ClassNotFoundException ex) {
-            Logger.getLogger(RequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+            ex.getMessage();
         }
     }
     
+    private synchronized boolean isStopped() {
+        return this.isStopped;
+    }
+    
+    public synchronized void stop() {
+        this.isStopped = true;
+        try {
+            oInStream.close();
+            oOutStream.close();
+            clientSocket.close();
+        } catch (IOException ex) {
+            ex.getMessage();
+        }
+    }
 }

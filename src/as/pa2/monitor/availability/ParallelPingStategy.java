@@ -30,20 +30,22 @@ public class ParallelPingStategy implements IFPingStrategy {
         System.out.println("PingTask executing "
                 +numCandidates+" servers configured");
         
-        ExecutorService executor = Executors.newFixedThreadPool(numCandidates);
-        List<Future<Boolean>> list = new ArrayList<Future<Boolean>>(numCandidates);
-        Callable<Boolean> callable = null;
-        for (int i=0; i < numCandidates; i++) {
-            callable = new ParallelPing(servers[i].getHost());
-            Future<Boolean> future = executor.submit(callable);
-            list.add(future);
-        }
-        executor.shutdown();
+        if (numCandidates > 0) {
+            ExecutorService executor = Executors.newFixedThreadPool(numCandidates);
+            List<Future<Boolean>> list = new ArrayList<Future<Boolean>>(numCandidates);
+            Callable<Boolean> callable = null;
+            for (int i=0; i < numCandidates; i++) {
+                callable = new ParallelPing(servers[i].getHost(),servers[i].getPort());
+                Future<Boolean> future = executor.submit(callable);
+                list.add(future);
+            }
+            executor.shutdown();
         
-        try {
-             results = toPrimitiveArray(list);
-        } catch (InterruptedException | ExecutionException ex) {
-            System.out.println("Error converting list to array!"+ex.getLocalizedMessage());
+            try {
+                 results = toPrimitiveArray(list);
+            } catch (InterruptedException | ExecutionException ex) {
+                System.out.println("Error converting list to array!"+ex.getLocalizedMessage());
+            }
         }
         return results;
     }

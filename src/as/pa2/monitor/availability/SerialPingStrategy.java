@@ -25,6 +25,7 @@ public class SerialPingStrategy implements IFPingStrategy {
             try {
                 if (ping != null) {
                     results[i] = ping.isAlive(servers[i]);
+                    System.out.println("PingResult server:"+servers[i].getId()+" result: "+results[i]);
                 }
             } catch (Exception e) {
                 System.out.println("Exception while pinging Server: "

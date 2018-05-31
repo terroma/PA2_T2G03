@@ -124,6 +124,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                     addServer(newServer);
                     System.out.println("[*] Monitor: new server added to list, server: "+newServer.getId());
                 }
+                System.out.println(allServersList.toString());
             } catch (IOException ioe) {
                 if (isStopped()) {
                     System.out.println("[*] Monitor Stopped !");
@@ -332,6 +333,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
             }
         } finally {
             writeLock.unlock();
+            System.out.println(allServersList.toString());
         }
     }
     
@@ -455,6 +457,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
         }
         lbTimer = new Timer("Monitor-HeartBeatTimer", true);
         lbTimer.schedule(new PingTask(), 0, pingIntervalSeconds * 1000);
+        System.out.println("[*] Monitor: setupPingTask ...");
     }
     
     /**
@@ -489,6 +492,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
             if (!pingInProgress.compareAndSet(false, true)) {
                 return; // Ping in progress
             }
+            System.out.println("[*] Monitor: pinging ...");
             // we get to Ping
             Server[] allServers = null;
             boolean[] results = null;

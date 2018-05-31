@@ -20,12 +20,13 @@ public class ClientConnection implements Runnable {
     protected ObjectInputStream oInStream;
     protected ObjectOutputStream oOutStream;
     protected int clientId;
+    protected final int internalId;
     protected LinkedBlockingQueue<PiRequest> requestsQueue;
     
-    public ClientConnection(LinkedBlockingQueue<PiRequest> requestQueue, Socket tcpSocket, int clientId) {
+    public ClientConnection(LinkedBlockingQueue<PiRequest> requestQueue, Socket tcpSocket,final int internalId) {
         this.requestsQueue = requestQueue;
         this.tcpSocket = tcpSocket;
-        this.clientId = clientId;
+        this.internalId = internalId;
         initStreams();
     }
 
@@ -34,10 +35,9 @@ public class ClientConnection implements Runnable {
             this.oInStream = new ObjectInputStream(tcpSocket.getInputStream());
             this.oOutStream = new ObjectOutputStream(tcpSocket.getOutputStream());
         } catch (IOException ioe) {
-            System.out.println("[!] IOException! ClientConnection["+this.clientId+"]");
+            System.out.println("[!] IOException! ClientConnection["+this.internalId+"]");
             ioe.printStackTrace();
         }
-        
     }
     
     @Override
@@ -45,15 +45,18 @@ public class ClientConnection implements Runnable {
         while (this.tcpSocket.isConnected()) {
             try {
                 PiRequest request = (PiRequest) oInStream.readObject();
+                if (this.clientId == 0)
+                    this.clientId = request.getClientId();
+                    
                 if (request != null) {
                     try {
+                        request.setClientId(internalId);
                         requestsQueue.put(request);
                     } catch (InterruptedException ex) {
-                        System.out.println("[!] ClientConnection["+this.clientId+"] interrupted while waiting to put request in list");
+                        System.out.println("[!] ClientConnection["+this.internalId+"] interrupted while waiting to put request in list");
                         ex.printStackTrace();
                     }
-                }
-                
+                }       
             } catch (IOException ioe) {
                 System.out.println("[!] IOException! Client["
                         +clientId+"]");
@@ -72,11 +75,12 @@ public class ClientConnection implements Runnable {
             if(!this.tcpSocket.isConnected())
                 return;
             try {
-                System.out.println("[*] ClientConnection["+this.clientId+"]: sending response ...");
+                response.setClientId(clientId);
+                System.out.println("[*] ClientConnection["+this.internalId+"]: sending response ...");
                 this.oOutStream.writeObject(response);
                 this.oOutStream.flush();
             } catch (IOException ioe) {
-                System.out.println("[!] IOException! ClientConnection["+this.clientId+"]");
+                System.out.println("[!] IOException! ClientConnection["+this.internalId+"]");
                 ioe.printStackTrace();
             }
         }
