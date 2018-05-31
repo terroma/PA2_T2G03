@@ -180,7 +180,8 @@ public class Monitor extends AbstractMonitor implements Runnable {
      * @param newServer 
      */
     public void addServer(Server newServer) {
-        if (newServer != null) {
+        // added condition to not duplicate server
+        if (newServer != null && !allServersList.contains(newServer)) {
             try {
                 ArrayList<Server> newList = new ArrayList<Server>();
                 newList.addAll(allServersList);
@@ -194,7 +195,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
     
     @Override
     public void addServers(List<Server> newServers) {
-        if (newServers != null && newServers.size() > 0) {
+        if (newServers != null && newServers.size() > 0 ) {
             try {
                 ArrayList<Server> newList = new ArrayList<Server>();
                 newList.addAll(allServersList);
