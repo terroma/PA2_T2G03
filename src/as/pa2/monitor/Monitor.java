@@ -129,9 +129,9 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 Server newServer = (Server) oInStream.readObject();
                 if (newServer != null) {
                     addServer(newServer);
-                    System.out.println("[*] Monitor: new server added to list, server: "+newServer.getId());
+                    //System.out.println("[*] Monitor: new server added to list, server: "+newServer.getId());
                 }
-                System.out.println(allServersList.toString());
+                //System.out.println(allServersList.toString());
             } catch (IOException ioe) {
                 if (isStopped()) {
                     System.out.println("[*] Monitor Stopped !");
@@ -341,8 +341,6 @@ public class Monitor extends AbstractMonitor implements Runnable {
             }
         } finally {
             writeLock.unlock();
-            System.out.println(allServersList.toString());
-            monitorLBGui.updateServerList(getAllServers());
         }
     }
     
@@ -374,6 +372,14 @@ public class Monitor extends AbstractMonitor implements Runnable {
             this.ping = null;
             lbTimer.cancel();
         }
+    }
+
+    public MonitorLBGUI getMonitorLBGui() {
+        return monitorLBGui;
+    }
+
+    public void setMonitorLBGui(MonitorLBGUI monitorLBGui) {
+        this.monitorLBGui = monitorLBGui;
     }
 
     public String getIp() {
@@ -517,7 +523,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
             if (!pingInProgress.compareAndSet(false, true)) {
                 return; // Ping in progress
             }
-            System.out.println("[*] Monitor: pinging ...");
+            //System.out.println("[*] Monitor: pinging ...");
             // we get to Ping
             Server[] allServers = null;
             boolean[] results = null;
@@ -550,8 +556,8 @@ public class Monitor extends AbstractMonitor implements Runnable {
                     
                     if (oldIsAlive != isAlive) {
                         changedServers.add(server);
-                        System.out.printf("Monitor: Server [{}] status "
-                            +"changed to {}", server.getId(), (isAlive ? "ALIVE" : "DEAD"));
+                        //System.out.printf("Monitor: Server [{}] status "
+                        //    +"changed to {}", server.getId(), (isAlive ? "ALIVE" : "DEAD"));
                     }
                     
                     if (isAlive) {
@@ -566,6 +572,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 }
             } finally {
                 pingInProgress.set(false);
+                monitorLBGui.updateServerList(getAllServers());
             }
         }
     }

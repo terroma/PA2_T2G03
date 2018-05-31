@@ -44,6 +44,10 @@ public class Client {
         this.clientGUI = clientGUI;
     }
     
+    public void init() {
+        initClient(loadBalancerIP, loadBalancerPort);
+    }
+    
     private void initClient(String host, int port) {
         try {
             System.out.println("[*] Starting Client["+clientId+"] ...");

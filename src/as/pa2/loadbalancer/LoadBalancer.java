@@ -5,6 +5,7 @@
  */
 package as.pa2.loadbalancer;
 
+import as.pa2.gui.MonitorLBGUI;
 import as.pa2.loadbalancer.strategies.IFRule;
 import as.pa2.loadbalancer.strategies.RoundRobinRule;
 import as.pa2.monitor.Monitor;
@@ -59,12 +60,27 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
     protected ConcurrentHashMap<Server,Socket> serverConnections = new ConcurrentHashMap<Server,Socket>();
     protected ConcurrentHashMap<PiRequest,PiResponse> handledRequests = new ConcurrentHashMap<PiRequest,PiResponse>();
     
-    public LoadBalancer(String ip, int port) {
+    protected MonitorLBGUI gui;
+    protected String monitorIp;
+    protected int monitorPort;
+    
+    public LoadBalancer(MonitorLBGUI gui) {
+        this.gui = gui;
+        this.isStopped = false;
+        setRule(DEFAULT_RULE);
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
+        this.serverConnectionsPool = Executors.newFixedThreadPool(10);
+
+    }
+    
+    public LoadBalancer(String ip, int port, String monitorIp, int monitorPort) {
         this.name = DEFAULT_NAME;
         this.isStopped = false;
         setRule(DEFAULT_RULE);
         this.ip = ip;
         this.port = port;
+        this.monitorIp = monitorIp;
+        this.monitorPort = monitorPort;
         this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
         this.serverConnectionsPool = Executors.newFixedThreadPool(10);
     }
@@ -154,19 +170,21 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         System.out.println("[*] LoadBalancer Started ...");
         
         //monitor = new Monitor("127.0.0.2", 5000, new SerialPing(), new SerialPingStrategy());
-        monitor = new Monitor("127.0.0.2", 5000, new ParallelPing(), new ParallelPingStategy());
+        monitor = new Monitor(monitorIp, monitorPort, new ParallelPing(), new ParallelPingStategy());
+        monitor.setMonitorLBGui(this.gui);
         (new Thread(monitor)).start();
         
         int clientCount = 0;
+        (new Thread(new HandleClientConnections())).start();
         while (!isStopped()) {
             /* handle client connections */
-            Socket clientSocket = null;
+            //Socket clientSocket = null;
             try {
-                clientSocket = this.socket.accept();
-                System.out.println("[*] LoadBalancer recieved new client Connection.");
-                ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount++);
-                clientConnections.put(clientCount, newConnection);
-                this.clientConnnectionsPool.execute(newConnection);
+                //clientSocket = this.socket.accept();
+                //System.out.println("[*] LoadBalancer recieved new client Connection.");
+                //ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount++);
+                //clientConnections.put(clientCount, newConnection);
+                //this.clientConnnectionsPool.execute(newConnection);
                 
                 /* choose and handle server connections */
                 if (!requestQueue.isEmpty()) {
@@ -193,6 +211,38 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         this.clientConnnectionsPool.shutdownNow();
         this.serverConnectionsPool.shutdownNow();
     }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public String getMonitorIp() {
+        return monitorIp;
+    }
+
+    public void setMonitorIp(String monitorIp) {
+        this.monitorIp = monitorIp;
+    }
+
+    public int getMonitorPort() {
+        return monitorPort;
+    }
+
+    public void setMonitorPort(int monitorPort) {
+        this.monitorPort = monitorPort;
+    }
     
     private synchronized boolean isStopped() {
         return this.isStopped;
@@ -217,9 +267,30 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         }
     }
     
+    private class HandleClientConnections implements Runnable {
+
+        @Override
+        public void run() {
+        int clientCount = 0;
+            while ( true ) {
+                try {
+                    /* handle client connections */
+                    Socket clientSocket = null;
+                    clientSocket = socket.accept();
+                    System.out.println("[*] LoadBalancer recieved new client Connection.");
+                    ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount++);
+                    clientConnections.put(clientCount, newConnection);
+                    clientConnnectionsPool.execute(newConnection);
+                } catch (IOException ex) {
+                    Logger.getLogger(LoadBalancer.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+    
     public static void main(String[] args) {
-        LoadBalancer lb = new LoadBalancer("127.0.0.1",3000);
-        lb.run();
+        //LoadBalancer lb = new LoadBalancer("127.0.0.1",3000);
+        //lb.run();
     }
     
 }

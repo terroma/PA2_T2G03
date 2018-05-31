@@ -42,9 +42,10 @@ public class ClientConnection implements Runnable {
     
     @Override
     public void run() {
-        while (this.tcpSocket.isConnected()) {
+        while ( true ) {
             try {
                 PiRequest request = (PiRequest) oInStream.readObject();
+                System.out.println("[*] ClientConnection handling request "+request.toString());
                 if (this.clientId == 0)
                     this.clientId = request.getClientId();
                     
@@ -52,6 +53,7 @@ public class ClientConnection implements Runnable {
                     try {
                         request.setClientId(internalId);
                         requestsQueue.put(request);
+                        System.out.println("[*] ClientConnection request added to list...");
                     } catch (InterruptedException ex) {
                         System.out.println("[!] ClientConnection["+this.internalId+"] interrupted while waiting to put request in list");
                         ex.printStackTrace();
@@ -60,6 +62,7 @@ public class ClientConnection implements Runnable {
             } catch (IOException ioe) {
                 System.out.println("[!] IOException! Client["
                         +clientId+"]");
+                this.close();
                 ioe.printStackTrace();    
             } catch (ClassNotFoundException ex) {
                 System.out.println("[!] ClassNotFoundException! Client["
@@ -67,7 +70,6 @@ public class ClientConnection implements Runnable {
                 ex.printStackTrace();
             }
         }
-        this.close();
     }
     
     public void sendResponse(PiResponse response) {

@@ -220,7 +220,7 @@ public class ClientGUI extends javax.swing.JFrame {
 
                             clientobj.setLoadBalancerIP(loadBalanerIP);
                             clientobj.setLoadBalancerPort(Integer.parseInt(loadBalancerPort));
-
+                            clientobj.init();
                             return clientobj;
 
                         }catch(Exception e){

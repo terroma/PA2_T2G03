@@ -6,6 +6,7 @@
 package as.pa2.gui;
 
 import as.pa2.gui.validation.AbstractValidate;
+import as.pa2.loadbalancer.LoadBalancer;
 import as.pa2.monitor.Monitor;
 import as.pa2.server.Server;
 import java.util.List;
@@ -19,6 +20,7 @@ import javax.swing.SwingWorker;
 public class MonitorLBGUI extends javax.swing.JFrame {
     
     private Monitor monitor;
+    private LoadBalancer loadBalancer;
     private boolean estado = false;
     private AbstractValidate validator;
 
@@ -30,6 +32,7 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         initComponents();
         validator = new AbstractValidate();
         this.monitor = new Monitor(this);
+        this.loadBalancer = new LoadBalancer(this);
     }
 
     /*
@@ -40,7 +43,7 @@ public class MonitorLBGUI extends javax.swing.JFrame {
             @Override
             public void run(){
                 jServerList.setText("");
-                System.out.println(list.toString());
+                //System.out.println(list.toString());
                 for(Server srv : list) {
                    jServerList.append(srv.getId() + " " + (srv.isAlive() ? "ALIVE\n" : "DEAD\n"));
                 } 
@@ -48,7 +51,7 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         });
     } 
     
-    /*
+    /*&& !allServersList.contains(newServer)
     * Updates server list
     */
     public void updateLogs(String line){
@@ -222,9 +225,9 @@ public class MonitorLBGUI extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        new SwingWorker<Monitor, Object> (){
+        new SwingWorker<LoadBalancer, Object> (){
             @Override
-            protected Monitor doInBackground() throws Exception {
+            protected LoadBalancer doInBackground() throws Exception {
                  if (!estado){
                           
                     estado = true;
@@ -257,10 +260,15 @@ public class MonitorLBGUI extends javax.swing.JFrame {
                         jServerPort.setEnabled(false);
                                               
                         jLogs.append("Monitor and Load Balancer started! \n");
-                        monitor.setIp(monitorIP);
-                        monitor.setPort(Integer.parseInt(serverPort));
-                        monitor.run();
-                        return monitor;
+                        //monitor.setIp(monitorIP);
+                        //monitor.setPort(Integer.parseInt(serverPort));
+                        //monitor.run();
+                        loadBalancer.setIp(loadBalancerIP);
+                        loadBalancer.setPort(Integer.parseInt(clientPort));
+                        loadBalancer.setMonitorIp(monitorIP);
+                        loadBalancer.setMonitorPort(Integer.parseInt(serverPort));
+                        loadBalancer.run();
+                        return loadBalancer;
                     }
                 }else{
                     jLogs.append("Monitor and Load Balancer have alredy started! \n");
