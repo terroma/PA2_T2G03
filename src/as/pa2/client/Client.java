@@ -116,8 +116,9 @@ public class Client {
         @Override
         public void run() {
             try {
+                oInStream = new ObjectInputStream(tcpSocket.getInputStream());
+
                 while (true) {
-                    oInStream = new ObjectInputStream(tcpSocket.getInputStream());
                     PiResponse response = (PiResponse) oInStream.readObject();
                     if (response != null) {
                         System.out.println("[*] Client["+clientId+"] Received response...");

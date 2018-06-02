@@ -270,7 +270,7 @@ public class Server implements Serializable, Runnable {
     }
     
     public static void main(String[] args) {
-        Server s = new Server("127.0.0.6", 5000, "127.0.0.2", 5000,0,10);
+        Server s = new Server("127.0.0.8", 5000, "127.0.0.2", 5000,0,10);
         s.run();
     }
 }

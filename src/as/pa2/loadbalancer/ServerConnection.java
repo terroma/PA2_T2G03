@@ -32,10 +32,11 @@ public class ServerConnection implements Runnable {
         this.request = request;
         this.handledRequests = handledRequests;
         this.isStopped = false;
-        initStreams();
+        //initStreams();
     }
 
     private void initStreams() {
+        System.out.println("[*] ServerConnection["+this.serverId+"]: initializing ...");
         try {
             this.oInStream = new ObjectInputStream(this.tcpSocket.getInputStream());
             this.oOutStream = new ObjectOutputStream(this.tcpSocket.getOutputStream());
@@ -47,14 +48,17 @@ public class ServerConnection implements Runnable {
     
     @Override
     public void run() {
-        while (!isStopped()) {
+        System.out.println("[*] ServerConnection[" +this.serverId+ "]: started ...");
+        while ( !isStopped() ) {
             try {
+                this.oOutStream = new ObjectOutputStream(this.tcpSocket.getOutputStream());
                 this.oOutStream.writeObject(this.request);
                 this.oOutStream.flush();
             } catch (IOException ex) {
                 System.out.println("[!] ServerConnection[" + this.serverId + "]: Failed to send request ...");
             }
             try {
+                this.oInStream = new ObjectInputStream(this.tcpSocket.getInputStream());
                 PiResponse response = (PiResponse) this.oInStream.readObject();
                 if (response != null) {
                     System.out.println("[*] ServerConnection[" + this.serverId + "]: response recieved ...");

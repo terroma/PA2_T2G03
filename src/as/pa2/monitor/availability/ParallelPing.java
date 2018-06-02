@@ -40,7 +40,7 @@ public class ParallelPing extends AbstractMonitorPing implements Callable<Boolea
         try {
             addr = InetAddress.getByName(ipToPing);
             result = hasService(addr, portToPing);
-            //System.out.println("PingResult server:"+ipToPing+" result: "+result);
+            System.out.println("PingResult server:"+ipToPing+" result: "+result);
             return result;
         } catch (IOException e) {
             e.printStackTrace();

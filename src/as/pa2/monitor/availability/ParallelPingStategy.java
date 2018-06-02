@@ -26,7 +26,7 @@ public class ParallelPingStategy implements IFPingStrategy {
     @Override
     public boolean[] pingServers(IFPing ping, Server[] servers) {
         int numCandidates = servers.length;
-        boolean[] results = null;
+        boolean[] results = new boolean[numCandidates];
         System.out.println("PingTask executing "
                 +numCandidates+" servers configured");
         

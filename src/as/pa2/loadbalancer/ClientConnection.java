@@ -22,11 +22,13 @@ public class ClientConnection implements Runnable {
     protected int clientId;
     protected final int internalId;
     protected LinkedBlockingQueue<PiRequest> requestsQueue;
+    protected boolean isStopped;
     
     public ClientConnection(LinkedBlockingQueue<PiRequest> requestQueue, Socket tcpSocket,final int internalId) {
         this.requestsQueue = requestQueue;
         this.tcpSocket = tcpSocket;
         this.internalId = internalId;
+        this.isStopped = false;
         initStreams();
     }
 
@@ -42,7 +44,7 @@ public class ClientConnection implements Runnable {
     
     @Override
     public void run() {
-        while ( true ) {
+        while ( !isStopped() ) {
             try {
                 PiRequest request = (PiRequest) oInStream.readObject();
                 System.out.println("[*] ClientConnection handling request "+request.toString());
@@ -62,8 +64,8 @@ public class ClientConnection implements Runnable {
             } catch (IOException ioe) {
                 System.out.println("[!] IOException! Client["
                         +clientId+"]");
-                this.close();
-                ioe.printStackTrace();    
+                this.stop();
+                //ioe.printStackTrace();    
             } catch (ClassNotFoundException ex) {
                 System.out.println("[!] ClassNotFoundException! Client["
                         +clientId+"]");
@@ -85,6 +87,19 @@ public class ClientConnection implements Runnable {
                 System.out.println("[!] IOException! ClientConnection["+this.internalId+"]");
                 ioe.printStackTrace();
             }
+        }
+    }
+    
+    private synchronized boolean isStopped() {
+        return this.isStopped;
+    }
+    
+    public synchronized void stop() {
+        this.isStopped = true;
+        try {
+            this.tcpSocket.close();
+        } catch (IOException ioe) {
+            throw new RuntimeException("Error closing LoadBalancer client connection",ioe);
         }
     }
     

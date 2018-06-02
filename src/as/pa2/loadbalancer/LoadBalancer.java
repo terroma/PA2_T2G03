@@ -190,14 +190,15 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                 if (!requestQueue.isEmpty()) {
                     Server choosenServer = chooseServer(this);
                     System.out.println("[*] LoadBalancer: choosen server "+choosenServer.getId());
-                    System.out.println("[*] LoadBalancer: request queue: "+requestQueue.toString());
-                    if (!serverConnections.containsKey(choosenServer)) {
+                    if (!serverConnections.containsKey(choosenServer) || !serverConnections.isEmpty()) {
                         Socket serverSocket = new Socket(choosenServer.getHost(),choosenServer.getPort());
                         serverConnections.put(choosenServer, serverSocket);
                     }
+                    //ServerConnection sc = new ServerConnection(clientConnections, handledRequests, serverConnections.get(choosenServer), choosenServer.getId(), requestQueue.take());
                     this.serverConnectionsPool.execute(new ServerConnection(clientConnections, handledRequests, serverConnections.get(choosenServer), choosenServer.getId(), requestQueue.take()));   
+                    System.out.println("Submitted to threadpool");
                 }
-                
+                //System.out.println("Exit");
             } catch (IOException ioe) {
                 if (isStopped()) {
                     System.out.println("[*] LoabBalancer Stopped!");
@@ -271,15 +272,17 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
 
         @Override
         public void run() {
-        int clientCount = 0;
+            //for secure reasons choose random number to start count
+        int clientCount = 3;
             while ( true ) {
                 try {
                     /* handle client connections */
                     Socket clientSocket = null;
                     clientSocket = socket.accept();
                     System.out.println("[*] LoadBalancer recieved new client Connection.");
-                    ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount++);
+                    ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount);
                     clientConnections.put(clientCount, newConnection);
+                    clientCount++;
                     clientConnnectionsPool.execute(newConnection);
                 } catch (IOException ex) {
                     Logger.getLogger(LoadBalancer.class.getName()).log(Level.SEVERE, null, ex);
@@ -287,10 +290,10 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
             }
         }
     }
-    
+        
     public static void main(String[] args) {
-        //LoadBalancer lb = new LoadBalancer("127.0.0.1",3000);
-        //lb.run();
+        LoadBalancer lb = new LoadBalancer("127.0.0.1",5000,"127.0.0.2",5000);
+        lb.run();
     }
     
 }

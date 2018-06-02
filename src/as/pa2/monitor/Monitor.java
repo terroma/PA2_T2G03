@@ -572,7 +572,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 }
             } finally {
                 pingInProgress.set(false);
-                monitorLBGui.updateServerList(getAllServers());
+//                monitorLBGui.updateServerList(getAllServers());
             }
         }
     }
