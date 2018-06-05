@@ -6,15 +6,20 @@
 package as.pa2.server;
 
 import as.pa2.gui.ServerGUI;
+import as.pa2.protocol.PiRequest;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -42,6 +47,8 @@ public class Server implements Serializable, Runnable {
     private int monitorPort;
     private int loadBalancerPort;
     private int queueSize;
+    
+    protected LinkedBlockingQueue<PiRequest> requestQueue = new LinkedBlockingQueue<PiRequest>();
     
     private transient ServerGUI serverGUI;
     
@@ -94,7 +101,12 @@ public class Server implements Serializable, Runnable {
         notifyMonitor(monitorIp, monitorPort);
         while (!isStopped()) {
             Socket clientSocket = null;
-            
+            try {
+                ServerSocket srvSckt = new ServerSocket(2000 , 10, InetAddress.getByName(this.host));
+                srvSckt.accept();
+            } catch (IOException ex) {
+                Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+            }
             try {
                 clientSocket = this.serverSocket.accept();
                 System.out.println("[*] Server["+serverId+"] "
@@ -270,7 +282,7 @@ public class Server implements Serializable, Runnable {
     }
     
     public static void main(String[] args) {
-        Server s = new Server("127.0.0.8", 5000, "127.0.0.2", 5000,0,10);
+        Server s = new Server("127.0.0.5", 5000, "127.0.0.2", 5000,0,10);
         s.run();
     }
 }

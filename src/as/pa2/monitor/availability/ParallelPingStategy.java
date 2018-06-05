@@ -35,7 +35,8 @@ public class ParallelPingStategy implements IFPingStrategy {
             List<Future<Boolean>> list = new ArrayList<Future<Boolean>>(numCandidates);
             Callable<Boolean> callable = null;
             for (int i=0; i < numCandidates; i++) {
-                callable = new ParallelPing(servers[i].getHost(),servers[i].getPort());
+                callable = new ParallelPing(servers[i].getHost(),2000);
+                //callable = new ParallelPing(servers[i].getHost(),servers[i].getPort());
                 Future<Boolean> future = executor.submit(callable);
                 list.add(future);
             }

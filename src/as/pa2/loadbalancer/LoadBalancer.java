@@ -68,8 +68,8 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         this.gui = gui;
         this.isStopped = false;
         setRule(DEFAULT_RULE);
-        this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
-        this.serverConnectionsPool = Executors.newFixedThreadPool(10);
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(4);
+        this.serverConnectionsPool = Executors.newFixedThreadPool(4);
 
     }
     
@@ -81,16 +81,16 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         this.port = port;
         this.monitorIp = monitorIp;
         this.monitorPort = monitorPort;
-        this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
-        this.serverConnectionsPool = Executors.newFixedThreadPool(10);
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(4);
+        this.serverConnectionsPool = Executors.newFixedThreadPool(4);
     }
     
     public LoadBalancer(String name, IFRule rule) {
         this.name = name;
         this.isStopped = false;
         setRule(rule);    
-        this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
-        this.serverConnectionsPool = Executors.newFixedThreadPool(10);
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(4);
+        this.serverConnectionsPool = Executors.newFixedThreadPool(4);
     }
      
     @Override
@@ -169,8 +169,8 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         openClientsSocket();
         System.out.println("[*] LoadBalancer Started ...");
         
-        //monitor = new Monitor("127.0.0.2", 5000, new SerialPing(), new SerialPingStrategy());
-        monitor = new Monitor(monitorIp, monitorPort, new ParallelPing(), new ParallelPingStategy());
+        monitor = new Monitor(monitorIp, monitorPort, new SerialPing(), new SerialPingStrategy());
+        //monitor = new Monitor(monitorIp, monitorPort, new ParallelPing(), new ParallelPingStategy());
         monitor.setMonitorLBGui(this.gui);
         (new Thread(monitor)).start();
         
