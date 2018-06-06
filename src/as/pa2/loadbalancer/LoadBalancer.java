@@ -171,8 +171,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         monitor = new Monitor(monitorIp, monitorPort, new SerialPing(), new SerialPingStrategy());
         //monitor = new Monitor(monitorIp, monitorPort, new ParallelPing(), new ParallelPingStategy());
         monitor.setMonitorLBGui(this.gui);
-        monitorThread = new Thread(monitor);
-        monitorThread.start();
+        (new Thread(monitor)).start();
         
         int clientCount = 0;
         clientConnectionsThread = new Thread(new HandleClientConnections());

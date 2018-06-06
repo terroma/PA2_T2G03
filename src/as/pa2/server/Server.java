@@ -79,6 +79,10 @@ public class Server implements Serializable, Runnable {
     
     public Server(ServerGUI serverGUI){
         this.serverGUI = serverGUI;
+        this.isAliveFlag = false;
+        this.isStopped = false;
+        this.requestQueue = new LinkedBlockingQueue<RequestHandler>();
+        this.threadPool = Executors.newFixedThreadPool(10);
     }
     
     @Override
