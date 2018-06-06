@@ -5,6 +5,11 @@
  */
 package as.pa2.gui.validation;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
@@ -60,6 +65,17 @@ public class AbstractValidate implements IFValidate{
             }
         }
         return true;
+    }
+
+    @Override
+    public boolean validateUsedIpPort(String ip, int port) {
+        Socket sock = null;
+        try {
+            sock = new Socket(ip, port);
+        } catch (IOException ex) {
+            return true;
+        }
+        return false;
     }
     
     

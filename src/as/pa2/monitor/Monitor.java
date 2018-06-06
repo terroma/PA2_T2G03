@@ -116,12 +116,12 @@ public class Monitor extends AbstractMonitor implements Runnable {
         openMonitorSocket();
         monitorLBGui.updateLogs("Monitor Started!");
         
+        Socket serverSocket = null;
         while (!isStopped()) {
-            Socket serverSocket = null;
-            
             try {
                 serverSocket = this.monitorSocket.accept();
-                monitorLBGui.updateLogs("Monitor: accepted connection from server:"+serverSocket.getInetAddress());
+                System.out.println(monitorSocket.toString());
+                monitorLBGui.updateLogs("Monitor: accepted connection from server: " + serverSocket.toString());
                 ObjectInputStream oInStream =
                         new ObjectInputStream(serverSocket.getInputStream());
                 
@@ -129,18 +129,19 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 if (newServer != null) {
                     addServer(newServer);
                 }
-                String stats = oInStream.readUTF();
-                if (stats != null) {
-                    System.out.println(stats);
-                }
                 //System.out.println(allServersList.toString());
             } catch (IOException ioe) {
                 if (isStopped()) {
                     monitorLBGui.updateLogs("Monitor Stopped!");
-                    break;
+                    try {
+                        if(serverSocket!=null){
+                           serverSocket.close(); 
+                        }
+                    } catch (IOException ex) {
+                        Logger.getLogger(Monitor.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    //break;
                 }
-                throw new RuntimeException(
-                        "[!] Monitor: Error accepting server connection.",ioe);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Monitor.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -462,9 +463,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
     public void forceQuickPing() {
         if (canSkipPing()) {
             return;
-        }
-        monitorLBGui.updateLogs("Monitor: forceQuickPing invoking");
-        
+        }        
         try {
             new Pinger(pingStrategy).runPinger();
         } catch (Exception e) {

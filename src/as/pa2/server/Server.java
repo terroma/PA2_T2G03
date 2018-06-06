@@ -17,6 +17,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -53,7 +55,9 @@ public class Server implements Serializable, Runnable {
     
     private transient ServerGUI serverGUI;
     
-    public Server(String host, int port, String monitorIp, int monitorPort, int loadBalancerPort, int queueSize) {
+    private transient Thread heartBeatThread;
+    
+    public Server(String host, int port, String monitorIp, int monitorPort, int queueSize) {
         this.host = host;
         this.serverPort = port;
         this.id = host + ":" + port;
@@ -63,7 +67,6 @@ public class Server implements Serializable, Runnable {
         this.runningThread = null;
         this.monitorIp = monitorIp;
         this.monitorPort = monitorPort;
-        this.loadBalancerPort = loadBalancerPort;
         this.queueSize = queueSize;
         
         this.requestQueue = new LinkedBlockingQueue<RequestHandler>();
@@ -85,6 +88,7 @@ public class Server implements Serializable, Runnable {
     
     @Override
     public void run() {
+        this.isStopped = false;
         serverGUI.updateLogs("Starting Server ["+id+"]!");
         synchronized( this ) {
             this.runningThread = Thread.currentThread();
@@ -92,28 +96,36 @@ public class Server implements Serializable, Runnable {
         openServerSocket();
         serverGUI.updateLogs("Server ["+id+"] Connected.");
         notifyMonitor(monitorIp, monitorPort);
-        (new Thread(new Runnable() {
+        heartBeatThread = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true) {
-                    ServerSocket srvSckt = null;
+                ServerSocket srvSckt = null;
+                while (!isStopped()) {
                     try {
                         srvSckt = new ServerSocket(2000 , 10, InetAddress.getByName(host));
-                        //serverGUI.updateLogs("Server["+serverId+"] Accepting Ping! ");
+                        serverGUI.updateLogs("Server["+id+"] Accepting Ping! ");
                         srvSckt.accept();
                     } catch (IOException ex) {
-                        //System.out.println("[*] Server["+serverId+"] Error openning ping socket! ");
+                        //System.out.println("[*] Server["+id+"] Error openning ping socket! ");
                     }
                 }
+                try {
+                    if(srvSckt!=null){
+                        srvSckt.close();
+                    }
+                } catch (IOException ex) {
+                    Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
-        })).start();
+        });
+        heartBeatThread.start();
 
         while ( !isStopped() ) {
             Socket clientSocket = null;
             
             try {
                 clientSocket = this.serverSocket.accept();
-               serverGUI.updateLogs("[*] Server["+serverId+"] "
+               serverGUI.updateLogs("Server["+serverId+"] "
                     + "Accepted Connection: "+clientSocket.getInetAddress().getHostAddress()
                         +":"+clientSocket.getPort());
                 
@@ -123,7 +135,6 @@ public class Server implements Serializable, Runnable {
                 
             } catch (IOException ioe) {
                 if (isStopped()) {
-                    serverGUI.updateLogs("Server Stopped!");
                     break;
                 }
                 throw new RuntimeException(
@@ -136,7 +147,6 @@ public class Server implements Serializable, Runnable {
             */
         }
         this.threadPool.shutdown();
-        this.stop();
     }
     
     public void sendStatistics(int threadId, int requestId) throws IOException {
@@ -149,15 +159,12 @@ public class Server implements Serializable, Runnable {
     
     private void notifyMonitor(String monitorIp, int monitorPort) {
         try {
-            //System.out.println("[*] Server["+this.id+"]: openning monitor socket.");
             this.monitorSocket = new Socket(monitorIp, monitorPort);
-            //System.out.println("[*] Server["+this.id+"]: monitor socket openned.");
             monitorOutStream = new ObjectOutputStream(monitorSocket.getOutputStream());
             monitorOutStream.writeObject(this);
             monitorOutStream.flush();
-           // System.out.println("[*] Server["+this.id+"]: monitor notified.");
         } catch (IOException ex) {
-            System.out.println("[!] Server["+this.id+"]: failed connection to monitor!"+ex.getMessage());
+            serverGUI.updateLogs("[!] Server ["+this.id+"]: failed connection to monitor! "+ex.getMessage());
         }
     }
     
@@ -294,7 +301,7 @@ public class Server implements Serializable, Runnable {
     }
     
     public static void main(String[] args) {
-        Server s = new Server("127.0.0.5", 5000, "127.0.0.2", 5000,0,3);
+        Server s = new Server("127.0.0.5", 5000, "127.0.0.2",0,3);
         s.run();
     }
 }

@@ -47,9 +47,9 @@ public class BasicFunctioningJUnitTest {
     // public void hello() {}
     @Test
     public void basicFunctioning() {
-        Server server1 = new Server("127.0.0.1", 5000, "127.0.0.2", 5000, 5000, 20);
-        Server server2 = new Server("127.0.0.3", 5000, "127.0.0.2", 5000, 5000, 20);
-        Server server3 = new Server("127.0.0.4", 5000, "127.0.0.2", 5000, 5000, 20);
+        Server server1 = new Server("127.0.0.1", 5000, "127.0.0.2", 5000, 20);
+        Server server2 = new Server("127.0.0.3", 5000, "127.0.0.2", 5000, 20);
+        Server server3 = new Server("127.0.0.4", 5000, "127.0.0.2", 5000, 20);
         
         LoadBalancer lb = new LoadBalancer("127.0.0.5", 5000, "127.0.0.2", 5000);
         
