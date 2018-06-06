@@ -44,6 +44,7 @@ public class Client {
     
     public Client(ClientGUI clienteGui){
         this.clientGUI = clienteGui;
+        this.clientId = uniqueClientId.hashCode();
     }
     
     public void init() {
@@ -64,8 +65,7 @@ public class Client {
             (new Thread(new InputListeningThread())).start();
 
         } catch (SocketException se) {
-            clientGUI.updateLogs("[!] SocketException! Client["+clientId+"] \n");
-            se.printStackTrace();
+            clientGUI.updateLogs("[!] Client ["+clientId+"] failed to connect, please check if LoadBalancer is running. \n");
         } catch (UnknownHostException uhe) {
             clientGUI.updateLogs("[!] UnknownHostException! Client["+clientId+"] \n");
             uhe.printStackTrace();

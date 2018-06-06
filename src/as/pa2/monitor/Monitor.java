@@ -248,7 +248,6 @@ public class Monitor extends AbstractMonitor implements Runnable {
         if (server == null || !server.isAlive()) {
             return;
         }
-        System.out.printf("LoadBalancer [{}]: markServerDown called on [{}]", server.getId());
         server.setAlive(false);
         //forceQuickPing();
         
