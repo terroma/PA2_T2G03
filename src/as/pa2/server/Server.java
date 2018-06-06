@@ -103,7 +103,6 @@ public class Server implements Serializable, Runnable {
                 while (!isStopped()) {
                     try {
                         srvSckt = new ServerSocket(2000 , 10, InetAddress.getByName(host));
-                        updateLogs("Server["+serverId+"] Accepting Ping! ");
                         srvSckt.accept();
                     } catch (IOException ex) {
                         //System.out.println("[*] Server["+id+"] Error openning ping socket! ");
