@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -65,12 +67,14 @@ public class Monitor extends AbstractMonitor implements Runnable {
     protected ServerSocket monitorSocket;
     protected boolean isStopped;
     
+    protected ExecutorService threadPool;
     private MonitorLBGUI monitorLBGui = null;
     
     public Monitor(String ip, int port) {
         this.ip = ip;
         this.port = port;
         this.isStopped = false;
+        this.threadPool = Executors.newFixedThreadPool(10);
         setupPingTask();
     }
     
@@ -80,11 +84,14 @@ public class Monitor extends AbstractMonitor implements Runnable {
         this.ping = ping;
         this.pingStrategy = pingStrategy;
         this.isStopped = false;
+        this.threadPool = Executors.newFixedThreadPool(10);
         setupPingTask();
     }
     
     public Monitor(MonitorLBGUI monitorLbGui){
         this.monitorLBGui = monitorLbGui;
+        this.isStopped = false;
+        this.threadPool = Executors.newFixedThreadPool(10);
     }
     
     /**
@@ -128,8 +135,8 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 Server newServer = (Server) oInStream.readObject();
                 if (newServer != null) {
                     addServer(newServer);
+                    this.threadPool.execute(new ServerListeningThread(serverSocket, oInStream));
                 }
-                //System.out.println(allServersList.toString());
             } catch (IOException ioe) {
                 if (isStopped()) {
                     updateLogs("Monitor Stopped!");
@@ -148,6 +155,31 @@ public class Monitor extends AbstractMonitor implements Runnable {
         }
     }
 
+    private class ServerListeningThread implements Runnable {
+        private Socket sock;
+        private ObjectInputStream oInStream;
+        
+        public ServerListeningThread(Socket sock, ObjectInputStream oInStream){ 
+            this.sock = sock;
+            this.oInStream = oInStream;
+        }
+
+        @Override
+        public void run() {
+            String s;
+            try {
+                while ( true ) {
+                    s = oInStream.readUTF();
+                    if (s != null) {
+                        updateLogs(s);
+                    }
+                }
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+    
     private void openMonitorSocket() {
         try {
             this.monitorSocket = new ServerSocket(this.port, 100, InetAddress.getByName(this.ip));
