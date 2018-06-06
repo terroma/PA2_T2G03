@@ -274,7 +274,7 @@ public class ClientGUI extends javax.swing.JFrame {
                     return clientobj;
                     
                 }else{
-                    jLogs.append("Server already started \n");
+                    jLogs.append("Client can't make request if not started. \n");
                     return null;
                 }
             }
