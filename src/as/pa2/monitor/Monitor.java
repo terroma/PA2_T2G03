@@ -65,7 +65,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
     protected ServerSocket monitorSocket;
     protected boolean isStopped;
     
-    private MonitorLBGUI monitorLBGui;
+    private MonitorLBGUI monitorLBGui = null;
     
     public Monitor(String ip, int port) {
         this.ip = ip;
@@ -129,6 +129,11 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 if (newServer != null) {
                     addServer(newServer);
                 }
+                String stats = oInStream.readUTF();
+                if (stats != null) {
+                    System.out.println(stats);
+                }
+                //System.out.println(allServersList.toString());
             } catch (IOException ioe) {
                 if (isStopped()) {
                     monitorLBGui.updateLogs("Monitor Stopped!");

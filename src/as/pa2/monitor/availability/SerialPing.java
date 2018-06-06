@@ -26,7 +26,7 @@ public class SerialPing extends AbstractMonitorPing {
         boolean alive = false;
         try {
             addr = InetAddress.getByName(server.getHost());
-            alive = hasService(addr, server.getPort());
+            alive = hasService(addr, 2000);
             return alive;
         } catch (IOException e) {
             e.printStackTrace();
