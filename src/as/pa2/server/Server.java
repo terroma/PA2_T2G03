@@ -85,12 +85,12 @@ public class Server implements Serializable, Runnable {
     
     @Override
     public void run() {
-        serverGUI.updateLogs("Starting Server ["+id+"]!");
+        updateLogs("Starting Server ["+id+"]!");
         synchronized( this ) {
             this.runningThread = Thread.currentThread();
         }
         openServerSocket();
-        serverGUI.updateLogs("Server ["+id+"] Connected.");
+        updateLogs("Server ["+id+"] Connected.");
         notifyMonitor(monitorIp, monitorPort);
         (new Thread(new Runnable() {
             @Override
@@ -99,7 +99,7 @@ public class Server implements Serializable, Runnable {
                     ServerSocket srvSckt = null;
                     try {
                         srvSckt = new ServerSocket(2000 , 10, InetAddress.getByName(host));
-                        //serverGUI.updateLogs("Server["+serverId+"] Accepting Ping! ");
+                        updateLogs("Server["+serverId+"] Accepting Ping! ");
                         srvSckt.accept();
                     } catch (IOException ex) {
                         //System.out.println("[*] Server["+serverId+"] Error openning ping socket! ");
@@ -113,7 +113,7 @@ public class Server implements Serializable, Runnable {
             
             try {
                 clientSocket = this.serverSocket.accept();
-               serverGUI.updateLogs("[*] Server["+serverId+"] "
+               updateLogs("[*] Server["+serverId+"] "
                     + "Accepted Connection: "+clientSocket.getInetAddress().getHostAddress()
                         +":"+clientSocket.getPort());
                 
@@ -123,7 +123,7 @@ public class Server implements Serializable, Runnable {
                 
             } catch (IOException ioe) {
                 if (isStopped()) {
-                    serverGUI.updateLogs("Server Stopped!");
+                    updateLogs("Server Stopped!");
                     break;
                 }
                 throw new RuntimeException(
@@ -168,7 +168,7 @@ public class Server implements Serializable, Runnable {
     public synchronized void stop() {
         this.isStopped = true;
         try {
-            serverGUI.updateLogs("Server Stopped!");
+            updateLogs("Server Stopped!");
             this.serverSocket.close();
             this.monitorSocket.close();
         } catch (IOException ioe) {
@@ -286,6 +286,12 @@ public class Server implements Serializable, Runnable {
         return svc.getId().equals(this.getId());
     }
     
+    private void updateLogs(String s) {
+        if (serverGUI != null) {
+            serverGUI.updateLogs(s);
+        }
+    }
+    
     @Override
     public int hashCode() {
         int hash = 7;
@@ -294,7 +300,7 @@ public class Server implements Serializable, Runnable {
     }
     
     public static void main(String[] args) {
-        Server s = new Server("127.0.0.5", 5000, "127.0.0.2", 5000,0,3);
+        Server s = new Server("127.0.0.8", 5000, "127.0.0.2", 5000,0,3);
         s.run();
     }
 }

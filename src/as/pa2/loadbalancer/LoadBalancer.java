@@ -101,7 +101,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
             try {
                 return rule.choose(key);
             } catch (Exception e) {
-                gui.updateLogs("LoadBalancer " + name + ": Error choosing server for " + key);
+                updateLogs("LoadBalancer " + name + ": Error choosing server for " + key);
                 return null;
             }
         }
@@ -115,12 +115,14 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                 Server server = rule.choose(key);
                 return ((server == null) ? null : server.getId());
             } catch (Exception e) {
-                gui.updateLogs("LoadBalancer " + name + ": Error choosing server for " + key);
+                updateLogs("LoadBalancer " + name + ": Error choosing server for " + key);
                 return null;
             }
         }
     }
 
+    
+    
     @Override
     public List<Server> getReachableServers() {
         return monitor.getReachableServers();
@@ -165,12 +167,14 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
     @Override
     public void run() {
         openClientsSocket();
-        gui.updateLogs("LoadBalancer Started!");
+        updateLogs("LoadBalancer Started!");
         
         //monitor = new Monitor(monitorIp, monitorPort, null, null);
         monitor = new Monitor(monitorIp, monitorPort, new SerialPing(), new SerialPingStrategy());
         //monitor = new Monitor(monitorIp, monitorPort, new ParallelPing(), new ParallelPingStategy());
-        monitor.setMonitorLBGui(this.gui);
+        if(gui != null)
+            monitor.setMonitorLBGui(this.gui);
+        
         (new Thread(monitor)).start();
         
         int clientCount = 0;
@@ -182,8 +186,8 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                 /* choose and handle server connections */
                 if (!requestQueue.isEmpty()) {
                     Server choosenServer = chooseServer(this);
-                    gui.updateLogs("LoadBalancer: choosen server "+choosenServer.getId());
-                    gui.updateLogs("serverConnections contains key: "+serverConnections.containsKey(choosenServer));
+                    updateLogs("LoadBalancer: choosen server "+choosenServer.getId());
+                    updateLogs("serverConnections contains key: "+serverConnections.containsKey(choosenServer));
                     Socket serverSocket = new Socket(choosenServer.getHost(),choosenServer.getPort());
                     serverConnections.put(choosenServer, serverSocket);
                     //System.out.println("Created new server socket!");
@@ -191,12 +195,12 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                 }
             } catch (IOException ioe) {
                 if (isStopped()) {
-                    gui.updateLogs("LoadBalancer Stopped!");
+                    updateLogs("LoadBalancer Stopped!");
                     break;
                 }
                 throw new RuntimeException("[!] LoadBalancer: Error accepting connections from clients.",ioe);
             } catch (InterruptedException ex) {
-                gui.updateLogs("[!] LoadBalancer: Failed to take request from queue.");
+                updateLogs("[!] LoadBalancer: Failed to take request from queue.");
             }
         }
         this.clientConnnectionsPool.shutdownNow();
@@ -243,7 +247,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
     public synchronized void stop() {
         this.isStopped = true;
         try {
-            gui.updateLogs("Load Balancer Stopped!");
+            updateLogs("Load Balancer Stopped!");
             this.socket.close();
             this.clientConnectionsThread.interrupt();
             this.monitor.shutdown();
@@ -272,7 +276,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                 try {
                     /* handle client connections */ 
                     clientSocket = socket.accept();
-                    gui.updateLogs("LoadBalancer recieved a new client connection.");
+                    updateLogs("LoadBalancer recieved a new client connection.");
                     ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount);
                     clientConnections.put(clientCount, newConnection);
                     clientCount++;
@@ -292,6 +296,12 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         }
     }
         
+    private void updateLogs(String s) {
+        if (gui != null) {
+            gui.updateLogs(s);
+        }
+    }
+    
     public static void main(String[] args) {
         LoadBalancer lb = new LoadBalancer("127.0.0.1",5000,"127.0.0.2",5000);
         lb.run();

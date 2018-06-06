@@ -114,14 +114,14 @@ public class Monitor extends AbstractMonitor implements Runnable {
     @Override
     public void run() {
         openMonitorSocket();
-        monitorLBGui.updateLogs("Monitor Started!");
+        updateLogs("Monitor Started!");
         
         while (!isStopped()) {
             Socket serverSocket = null;
             
             try {
                 serverSocket = this.monitorSocket.accept();
-                monitorLBGui.updateLogs("Monitor: accepted connection from server:"+serverSocket.getInetAddress());
+                updateLogs("Monitor: accepted connection from server:"+serverSocket.getInetAddress());
                 ObjectInputStream oInStream =
                         new ObjectInputStream(serverSocket.getInputStream());
                 
@@ -129,14 +129,11 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 if (newServer != null) {
                     addServer(newServer);
                 }
-                String stats = oInStream.readUTF();
-                if (stats != null) {
-                    System.out.println(stats);
-                }
-                //System.out.println(allServersList.toString());
+                
+                System.out.println(allServersList.toString());
             } catch (IOException ioe) {
                 if (isStopped()) {
-                    monitorLBGui.updateLogs("Monitor Stopped!");
+                    updateLogs("Monitor Stopped!");
                     break;
                 }
                 throw new RuntimeException(
@@ -197,7 +194,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 newList.add(newServer);
                 setServersList(newList);
             } catch (Exception e) {
-                monitorLBGui.updateLogs("Monitor: Error adding newServer "+newServer.getId());
+                updateLogs("Monitor: Error adding newServer "+newServer.getId());
             }
         }
     }
@@ -211,7 +208,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 newList.addAll(newServers);
                 setServersList(newList);
             } catch (Exception e) {
-                monitorLBGui.updateLogs("Monitor: Error adding newServers "+newServers.size());
+                updateLogs("Monitor: Error adding newServers "+newServers.size());
             }
         }
     }
@@ -235,7 +232,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
             }
             
             if (triggered) {
-                monitorLBGui.updateLogs("Monitor: markServerDown called on " + id);
+                updateLogs("Monitor: markServerDown called on " + id);
                 notifyServerStatusChangeListener(changedServers);
             }
         } finally {
@@ -320,7 +317,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                         try {
                             listener.serverListChanged(oldList, newList);
                         } catch (Exception e) {
-                            monitorLBGui.updateLogs("LoadBalancer Error invoking server list change listener");       
+                            updateLogs("LoadBalancer Error invoking server list change listener");       
                         }
                     }
                 }
@@ -399,7 +396,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
         try {
             return (availableOnly ? upServersList.get(index) : allServersList.get(index));
         } catch (Exception e) {
-            monitorLBGui.updateLogs("Monitor: Server not found running getServerByIndex("+index+","+availableOnly+")");
+            updateLogs("Monitor: Server not found running getServerByIndex("+index+","+availableOnly+")");
         }   return null;
     }
     
@@ -409,9 +406,15 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 try {
                     listener.serverStatusChanged(changedServers);
                 } catch (Exception e) {
-                    monitorLBGui.updateLogs("Monitor: Error invoking server status change listener" + e);
+                    updateLogs("Monitor: Error invoking server status change listener" + e);
                 }
             }
+        }
+    }
+    
+    private void updateLogs(String s) {
+        if (monitorLBGui != null) {
+            monitorLBGui.updateLogs(s);
         }
     }
     
@@ -463,12 +466,12 @@ public class Monitor extends AbstractMonitor implements Runnable {
         if (canSkipPing()) {
             return;
         }
-        monitorLBGui.updateLogs("Monitor: forceQuickPing invoking");
+        updateLogs("Monitor: forceQuickPing invoking");
         
         try {
             new Pinger(pingStrategy).runPinger();
         } catch (Exception e) {
-            monitorLBGui.updateLogs("Monitor: Error running forceQuickPing()" + e);
+            updateLogs("Monitor: Error running forceQuickPing()" + e);
         }
     }
     
@@ -569,7 +572,8 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 }
             } finally {
                 pingInProgress.set(false);
-                monitorLBGui.updateServerList(getAllServers());
+                if (monitorLBGui != null)
+                    monitorLBGui.updateServerList(getAllServers());
             }
         }
     }
