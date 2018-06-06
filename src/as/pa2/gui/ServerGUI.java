@@ -7,7 +7,6 @@ package as.pa2.gui;
 
 import as.pa2.gui.validation.AbstractValidate;
 import as.pa2.server.Server;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 
 /**

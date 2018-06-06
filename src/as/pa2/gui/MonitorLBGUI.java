@@ -230,8 +230,6 @@ public class MonitorLBGUI extends javax.swing.JFrame {
             protected LoadBalancer doInBackground() throws Exception {
                  if (!estado){
                           
-                    estado = true;
-                    
                     String monitorIP = jMonitorIP.getText();
                     String loadBalancerIP = jLoadBalancerIP.getText();
                     String clientPort = jClientPort.getText();
@@ -242,6 +240,9 @@ public class MonitorLBGUI extends javax.swing.JFrame {
                         return null;
                     }else if(!validator.validateIP(loadBalancerIP)){
                         jLogs.append("Load Balancer IP is not valid! \n");
+                        return null;
+                    }else if(monitor.equals(loadBalancerIP)){
+                        jLogs.append("Monitor IP and Load Balancer IP need to be different! \n");
                         return null;
                     }else if(!validator.validatePort(clientPort)){
                         jLogs.append("Client Port is not valid! \n");
@@ -254,24 +255,25 @@ public class MonitorLBGUI extends javax.swing.JFrame {
                         return null;
                     }else{
                         
+                        estado = true;
                         jMonitorIP.setEnabled(false);
                         jLoadBalancerIP.setEnabled(false);
                         jClientPort.setEnabled(false);
                         jServerPort.setEnabled(false);
-                                              
-                        jLogs.append("Monitor and Load Balancer started! \n");
-                        //monitor.setIp(monitorIP);
-                        //monitor.setPort(Integer.parseInt(serverPort));
-                        //monitor.run();
+                        //jLogs.append("Monitor and Load Balancer started! \n");
+
                         loadBalancer.setIp(loadBalancerIP);
                         loadBalancer.setPort(Integer.parseInt(clientPort));
                         loadBalancer.setMonitorIp(monitorIP);
                         loadBalancer.setMonitorPort(Integer.parseInt(serverPort));
                         loadBalancer.run();
+                        
+                        
+                        
                         return loadBalancer;
                     }
                 }else{
-                    jLogs.append("Monitor and Load Balancer have alredy started! \n");
+                    jLogs.append("Monitor and Load Balancer have already started! \n");
                     return null;
                 }
             }
@@ -287,21 +289,24 @@ public class MonitorLBGUI extends javax.swing.JFrame {
             @Override
             protected Monitor doInBackground() throws Exception {
                  if (estado){
-                     
+                    
+                    
+                    
                     estado=false;
                    
                     jMonitorIP.setEnabled(true);
                     jLoadBalancerIP.setEnabled(true);
                     jClientPort.setEnabled(true);
                     jServerPort.setEnabled(true);
-                        
-                    jLogs.append("Monitor and Load Balancer stoped! \n");
                     
-                    monitor.shutdown();
+                    loadBalancer.stop();
+                    //jLogs.append("Monitor and Load Balancer stoped! \n");
+                    
+                    
                      
                     return monitor;
                  }else{
-                     jLogs.append("Monitor and Load Balancer alredy stoped! \n");
+                     jLogs.append("Monitor and Load Balancer already stoped! \n");
                      return null;
                  }
             }

@@ -31,7 +31,11 @@ public class ClientGUI extends javax.swing.JFrame {
         validator = new AbstractValidate();
         clientobj = new Client(this);
     }
-
+    
+    public void updateLogs(String line){
+        jLogs.append(line);
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -73,7 +77,7 @@ public class ClientGUI extends javax.swing.JFrame {
 
         jLabel3.setText("Load-Balancer Port:");
 
-        jLoadBalancerIP.setText("127.0.0.1");
+        jLoadBalancerIP.setText("127.0.0.3");
 
         jLoadBalancerPort.setText("5000");
 
@@ -212,19 +216,21 @@ public class ClientGUI extends javax.swing.JFrame {
                     }else{
                         try{
                             
-                            estado = true;
-                            jLoadBalancerIP.setEnabled(false);
-                            jLoadBalancerPort.setEnabled(false);
-                            jLogs.append("Client Started \n");
-                            jLogs.append("Client connected with Load-balancer with IP: " + loadBalanerIP + " on port: " + loadBalancerPort +  "\n");
+                            //jLogs.append("Client Started \n");
+                            //jLogs.append("Client connected with Load-balancer with IP: " + loadBalanerIP + " on port: " + loadBalancerPort +  "\n");
 
                             clientobj.setLoadBalancerIP(loadBalanerIP);
                             clientobj.setLoadBalancerPort(Integer.parseInt(loadBalancerPort));
                             clientobj.init();
+                            
+                            estado = true;
+                            jLoadBalancerIP.setEnabled(false);
+                            jLoadBalancerPort.setEnabled(false);
+                            
                             return clientobj;
 
                         }catch(Exception e){
-                            jLogs.append("Error starting Client");
+                            //jLogs.append("Error starting Client");
                             return null;
                         }
                     }
@@ -287,7 +293,7 @@ public class ClientGUI extends javax.swing.JFrame {
                     jLogs.append("Connection ended by client \n");
 
                     jLoadBalancerIP.setEnabled(true);
-                jLoadBalancerPort.setEnabled(true);
+                    jLoadBalancerPort.setEnabled(true);
 
                     clientobj.stop();
 
