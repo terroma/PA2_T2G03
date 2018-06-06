@@ -6,24 +6,17 @@
 package as.pa2.server;
 
 import as.pa2.gui.ServerGUI;
-import as.pa2.loadbalancer.ClientConnection;
-import as.pa2.loadbalancer.LoadBalancer;
-import as.pa2.protocol.PiRequest;
 import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -60,18 +53,6 @@ public class Server implements Serializable, Runnable {
     
     private transient ServerGUI serverGUI;
     
-    /* default server constructor */
-    public Server() {
-        this.serverId = uniqueClientId.hashCode();
-        System.out.println("[*] Starting Server["+serverId+"] ...");
-        this.serverPort = 8080;
-        this.serverSocket = null;
-        this.isStopped = false;
-        this.runningThread = null;
-        this.threadPool = Executors.newFixedThreadPool(10);
-        this.host = "127.0.0.1"; // or locahost
-    }
-    
     public Server(String host, int port, String monitorIp, int monitorPort, int loadBalancerPort, int queueSize) {
         this.host = host;
         this.serverPort = port;
@@ -102,6 +83,7 @@ public class Server implements Serializable, Runnable {
     
     @Override
     public void run() {
+        serverGUI.updateLogs("Starting Server ["+id+"]");
         synchronized( this ) {
             this.runningThread = Thread.currentThread();
         }

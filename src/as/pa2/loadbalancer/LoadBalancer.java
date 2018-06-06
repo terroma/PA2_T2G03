@@ -61,6 +61,9 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
     protected String monitorIp;
     protected int monitorPort;
     
+    protected Thread clientConnectionsThread;
+    protected Thread monitorThread;
+    
     public LoadBalancer(MonitorLBGUI gui) {
         this.gui = gui;
         this.isStopped = false;
@@ -164,14 +167,16 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         openClientsSocket();
         gui.updateLogs("LoadBalancer Started!");
         
-        monitor = new Monitor(monitorIp, monitorPort, null, null);
-        //monitor = new Monitor(monitorIp, monitorPort, new SerialPing(), new SerialPingStrategy());
+        //monitor = new Monitor(monitorIp, monitorPort, null, null);
+        monitor = new Monitor(monitorIp, monitorPort, new SerialPing(), new SerialPingStrategy());
         //monitor = new Monitor(monitorIp, monitorPort, new ParallelPing(), new ParallelPingStategy());
         monitor.setMonitorLBGui(this.gui);
-        (new Thread(monitor)).start();
+        monitorThread = new Thread(monitor);
+        monitorThread.start();
         
         int clientCount = 0;
-        (new Thread(new HandleClientConnections())).start();
+        clientConnectionsThread = new Thread(new HandleClientConnections());
+        clientConnectionsThread.start();
         while (!isStopped()) {
             try {
                 
@@ -197,6 +202,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         }
         this.clientConnnectionsPool.shutdownNow();
         this.serverConnectionsPool.shutdownNow();
+        //this.stop();
     }
 
     public String getIp() {
@@ -240,6 +246,8 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         try {
             gui.updateLogs("Load Balancer Stopped!");
             this.socket.close();
+            this.clientConnectionsThread.interrupt();
+            this.monitor.shutdown();
         } catch (IOException ioe) {
             throw new RuntimeException("Error closing LoadBalancer",ioe);
         }
@@ -260,10 +268,10 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         public void run() {
             //for secure reasons choose random number to start count
         int clientCount = 3;
+        Socket clientSocket = null;
             while ( true ) {
                 try {
-                    /* handle client connections */
-                    Socket clientSocket = null;
+                    /* handle client connections */ 
                     clientSocket = socket.accept();
                     gui.updateLogs("LoadBalancer recieved a new client connection.");
                     ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount);
@@ -271,8 +279,16 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                     clientCount++;
                     clientConnnectionsPool.execute(newConnection);
                 } catch (IOException ex) {
-                    Logger.getLogger(LoadBalancer.class.getName()).log(Level.SEVERE, null, ex);
+                    //Logger.getLogger(LoadBalancer.class.getName()).log(Level.SEVERE, null, ex);
+                    break;
                 }
+            }
+            try {
+                if(clientSocket!=null){
+                    clientSocket.close();
+                }
+            } catch (IOException ex) {
+                System.out.println("Fail to close Client Socket.");
             }
         }
     }

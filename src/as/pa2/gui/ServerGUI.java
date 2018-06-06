@@ -28,6 +28,10 @@ public class ServerGUI extends javax.swing.JFrame {
         serverobj = new Server(this);
     }
     
+    public void updateLogs(String line){
+        JLogs.append(line + "\n");
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
