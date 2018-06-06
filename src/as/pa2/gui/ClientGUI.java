@@ -23,6 +23,8 @@ public class ClientGUI extends javax.swing.JFrame {
     long precisionLong;
     int delayInt;   
     
+    private int requestID = 1;
+            
     /**
      * Creates new form ClientGUI
      */
@@ -262,10 +264,11 @@ public class ClientGUI extends javax.swing.JFrame {
                         jLogs.append("Delay Value is not valid! \n");
                         return null;
                     }
-                    PiRequest request = new PiRequest(1, 1, 1, precisionLong, delayInt);
+                    PiRequest request = new PiRequest(clientobj.getClientId(), requestID, 01, precisionLong, delayInt);
                     
                     try{
                         clientobj.sendMessage(request);
+                        requestID++;
                     }catch(Exception e){
                         System.out.println(e);
                         e.printStackTrace();

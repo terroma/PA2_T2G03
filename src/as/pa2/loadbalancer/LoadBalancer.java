@@ -184,8 +184,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                 /* choose and handle server connections */
                 if (!requestQueue.isEmpty()) {
                     Server choosenServer = chooseServer(this);
-                    updateLogs("LoadBalancer: choosen server "+choosenServer.getId());
-                    updateLogs("serverConnections contains key: "+serverConnections.containsKey(choosenServer));
+                    updateLogs("LoadBalancer: choosen server " + choosenServer.getHost());
                     Socket serverSocket = new Socket(choosenServer.getHost(),choosenServer.getPort());
                     serverConnections.put(choosenServer, serverSocket);
                     //System.out.println("Created new server socket!");

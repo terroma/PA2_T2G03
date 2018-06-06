@@ -7,15 +7,11 @@ package as.pa2.server;
 
 import as.pa2.protocol.PiRequest;
 import as.pa2.protocol.PiResponse;
-import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.net.Socket;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -56,7 +52,7 @@ public class RequestHandler implements Runnable {
             
             long time = System.currentTimeMillis();
             while( !isStopped() ) {
-                System.out.println("Está à espera");
+                //System.out.println("Está à espera");
                 PiRequest request = (PiRequest) oInStream.readObject();
                 PiResponse response = null;
                 if(request!=null){
@@ -65,27 +61,27 @@ public class RequestHandler implements Runnable {
                         response = new PiResponse(request.getClientId(), request.getRequestId(), 3, request.getPrecision(), request.getDelay(), 0);
                         oOutStream.writeObject(response);
                         oOutStream.flush();
-                        System.out.println("Rejected Request ...");
+                        server.getServerGUI().updateLogs("Server: " + server.getHost() + " can't compute request.");
                         requestQueue.remove(this);
                         break;
                     }
                     this.processing = true;
                     server.sendStatistics((int)Thread.currentThread().getId(), request.getRequestId());
-                    System.out.println("ThreadId: "+Thread.currentThread().getId()+" requestID: "+request.getRequestId());
-                    System.out.println("Recebeu um request");
+                    //System.out.println("ThreadId: "+Thread.currentThread().getId()+" requestID: "+request.getRequestId());
+                    server.getServerGUI().updateLogs("Server: " + server.getHost() + " received request: [" + request.toString() + " ]");
+                    server.getServerGUI().updateLogs("Server: " + server.getHost() + " is computing request");
                     Double pi = new Pi().compute(request.getPrecision(), request.getDelay());
-                    System.out.println("calculou o pi");
                     response = new PiResponse(request.getClientId(), request.getRequestId(), 2, request.getPrecision(), request.getDelay(), pi);
-                    System.out.println("Tenta enviar");
+                    server.getServerGUI().updateLogs("Server: " + server.getHost() + " finish computing and is trying to send result.");
                     oOutStream.writeObject(response);
-                    System.out.println("Enviou");
+                    server.getServerGUI().updateLogs("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
                     oOutStream.flush();
                     this.processing = false;
                     requestQueue.remove(this);
                     break;
                 }
             }
-            this.stop();
+            //this.stop();
         } catch (IOException ioe) {
             System.out.println("Closing client connection ");
             this.isStopped = true;

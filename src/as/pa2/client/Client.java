@@ -89,8 +89,8 @@ public class Client {
             if(!this.tcpSocket.isConnected())
                 return;
             try {
-                clientGUI.updateLogs("Client["+clientId+"] Sending Request: " + request.toString() + "\n");
-                clientGUI.updateLogs("Request: "+request.toString() + "\n");
+                clientGUI.updateLogs("Client["+clientId+"] Sending Request: \n");
+                clientGUI.updateLogs("[ "+request.toString() + " ] \n");
                 this.oOutStream.writeObject(request);
                 this.oOutStream.flush();
             } catch (IOException ioe) {
@@ -123,15 +123,16 @@ public class Client {
                 while (true) {
                     PiResponse response = (PiResponse) oInStream.readObject();
                     if (response != null) {
-                        clientGUI.updateLogs("Client["+clientId+"] Received response: " + response.toString() + "\n");
+                        clientGUI.updateLogs("Client ["+clientId+"] Received response: \n");
+                        clientGUI.updateLogs("[ "+ response.toString() + " ] \n");
                     }
                 }
             } catch (IOException ioe) {
-                clientGUI.updateLogs("[!] IOException! Client["+clientId+"] \n");
-                ioe.printStackTrace();
+                clientGUI.updateLogs("[!] Connection Failed, check LoadBalancer status.");
+                //ioe.printStackTrace();
             } catch (ClassNotFoundException ex) {
                 clientGUI.updateLogs("[!] ClassNotFoundException! Client["+clientId+"] \n");
-                ex.printStackTrace();
+                //ex.printStackTrace();
             }
         }
     }
@@ -151,6 +152,15 @@ public class Client {
     public void setLoadBalancerIP(String loadBalancerIP) {
         this.loadBalancerIP = loadBalancerIP;
     }
+
+    public int getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(int clientId) {
+        this.clientId = clientId;
+    }
+    
     
     public static void main(String[] args) throws IOException {
         //Client c = new Client();
