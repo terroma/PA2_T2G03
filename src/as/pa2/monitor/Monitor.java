@@ -126,9 +126,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
         Socket serverSocket = null;
         while (!isStopped()) {
             try {
-                serverSocket = this.monitorSocket.accept();
-                System.out.println(monitorSocket.toString());
-                updateLogs("Monitor: accepted connection from server: " + serverSocket.toString());
+                serverSocket = this.monitorSocket.accept();                
                 ObjectInputStream oInStream =
                         new ObjectInputStream(serverSocket.getInputStream());
                 
@@ -136,6 +134,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 if (newServer != null) {
                     addServer(newServer);
                     this.threadPool.execute(new ServerListeningThread(serverSocket, oInStream));
+                    updateLogs("Monitor: accepted connection from server: " + newServer.getId());
                 }
             } catch (IOException ioe) {
                 if (isStopped()) {
@@ -501,9 +500,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
     public void forceQuickPing() {
         if (canSkipPing()) {
             return;
-        }
-        updateLogs("Monitor: forceQuickPing invoking");
-        
+        }        
         try {
             new Pinger(pingStrategy).runPinger();
         } catch (Exception e) {

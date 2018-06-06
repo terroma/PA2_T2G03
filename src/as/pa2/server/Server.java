@@ -89,12 +89,12 @@ public class Server implements Serializable, Runnable {
     @Override
     public void run() {
         this.isStopped = false;
-        updateLogs("Starting Server ["+id+"]!");
+        updateLogs("Starting Server ["+host+"]!");
         synchronized( this ) {
             this.runningThread = Thread.currentThread();
         }
         openServerSocket();
-        updateLogs("Server ["+id+"] Connected.");
+        updateLogs("Server ["+host+"] Connected.");
         notifyMonitor(monitorIp, monitorPort);
         heartBeatThread = new Thread(new Runnable() {
             @Override
@@ -103,7 +103,6 @@ public class Server implements Serializable, Runnable {
                 while (!isStopped()) {
                     try {
                         srvSckt = new ServerSocket(2000 , 10, InetAddress.getByName(host));
-                        updateLogs("Server["+serverId+"] Accepting Ping! ");
                         srvSckt.accept();
                     } catch (IOException ex) {
                         //System.out.println("[*] Server["+id+"] Error openning ping socket! ");
@@ -125,9 +124,6 @@ public class Server implements Serializable, Runnable {
             
             try {
                 clientSocket = this.serverSocket.accept();
-               updateLogs("[*] Server["+serverId+"] "
-                    + "Accepted Connection: "+clientSocket.getInetAddress().getHostAddress()
-                        +":"+clientSocket.getPort());
                 
                 RequestHandler requestHandler = new RequestHandler(clientSocket, this, this.requestQueue, this.queueSize);
                 this.requestQueue.add(requestHandler);
@@ -176,7 +172,6 @@ public class Server implements Serializable, Runnable {
     public synchronized void stop() {
         this.isStopped = true;
         try {
-            updateLogs("Server Stopped!");
             this.serverSocket.close();
             this.monitorSocket.close();
         } catch (IOException ioe) {
@@ -275,6 +270,14 @@ public class Server implements Serializable, Runnable {
 
     public void setQueueSize(int queueSize) {
         this.queueSize = queueSize;
+    }
+
+    public ServerGUI getServerGUI() {
+        return serverGUI;
+    }
+
+    public void setServerGUI(ServerGUI serverGUI) {
+        this.serverGUI = serverGUI;
     }
     
     
