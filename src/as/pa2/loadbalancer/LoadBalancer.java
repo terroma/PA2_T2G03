@@ -169,7 +169,8 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         openClientsSocket();
         System.out.println("[*] LoadBalancer Started ...");
         
-        monitor = new Monitor(monitorIp, monitorPort, new SerialPing(), new SerialPingStrategy());
+        monitor = new Monitor(monitorIp, monitorPort, null, null);
+        //monitor = new Monitor(monitorIp, monitorPort, new SerialPing(), new SerialPingStrategy());
         //monitor = new Monitor(monitorIp, monitorPort, new ParallelPing(), new ParallelPingStategy());
         monitor.setMonitorLBGui(this.gui);
         (new Thread(monitor)).start();
@@ -177,26 +178,17 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         int clientCount = 0;
         (new Thread(new HandleClientConnections())).start();
         while (!isStopped()) {
-            /* handle client connections */
-            //Socket clientSocket = null;
             try {
-                //clientSocket = this.socket.accept();
-                //System.out.println("[*] LoadBalancer recieved new client Connection.");
-                //ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount++);
-                //clientConnections.put(clientCount, newConnection);
-                //this.clientConnnectionsPool.execute(newConnection);
                 
                 /* choose and handle server connections */
                 if (!requestQueue.isEmpty()) {
                     Server choosenServer = chooseServer(this);
                     System.out.println("[*] LoadBalancer: choosen server "+choosenServer.getId());
-                    if (!serverConnections.containsKey(choosenServer) || !serverConnections.isEmpty()) {
-                        Socket serverSocket = new Socket(choosenServer.getHost(),choosenServer.getPort());
-                        serverConnections.put(choosenServer, serverSocket);
-                    }
-                    //ServerConnection sc = new ServerConnection(clientConnections, handledRequests, serverConnections.get(choosenServer), choosenServer.getId(), requestQueue.take());
-                    this.serverConnectionsPool.execute(new ServerConnection(clientConnections, handledRequests, serverConnections.get(choosenServer), choosenServer.getId(), requestQueue.take()));   
-                    System.out.println("Submitted to threadpool");
+                    System.out.println("serverConnections contains key: "+serverConnections.containsKey(choosenServer));
+                    Socket serverSocket = new Socket(choosenServer.getHost(),choosenServer.getPort());
+                    serverConnections.put(choosenServer, serverSocket);
+                    System.out.println("Created new server socket!");
+                    this.serverConnectionsPool.execute(new ServerConnection(clientConnections, handledRequests, requestQueue,serverConnections.get(choosenServer), choosenServer.getId(), requestQueue.take()));   
                 }
                 //System.out.println("Exit");
             } catch (IOException ioe) {

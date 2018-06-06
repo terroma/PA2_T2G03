@@ -42,6 +42,7 @@ public class Client {
     
     public Client(ClientGUI clienteGUI){
         this.clientGUI = clientGUI;
+        System.out.println(this.clientGUI);
     }
     
     public void init() {
