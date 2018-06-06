@@ -237,14 +237,7 @@ public class ServerGUI extends javax.swing.JFrame {
                         jMonitorPort.setEnabled(false);
                         jLoadBPort.setEnabled(false);
                         jQueueSize.setEnabled(false);
-                        
-                        JLogs.append("-------------------------------------------------------------------------------------------------------------------- \n");
-                        JLogs.append("Server started with IP: " + serverIP + " and Port: " + serverPort + " \n");
-                        JLogs.append("Server connected to Monitor with IP: " + monitorIP + " on Port: " + monitorPort + " \n");
-                        JLogs.append("Server connected Load-balancer on Port: " + loadBPort + " \n");
-                        JLogs.append("Server queue size is " + queueSize + " \n");
-                        JLogs.append("-------------------------------------------------------------------------------------------------------------------- \n");
-                                                
+                                         
                         serverobj.setHost(serverIP);
                         serverobj.setPort(Integer.parseInt(serverPort));
                         serverobj.setMonitorIp(monitorIP);

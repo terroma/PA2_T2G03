@@ -82,13 +82,14 @@ public class ServerConnection implements Runnable {
 
     public synchronized void stop() {
         this.isStopped = true;
+        /*
         try {
             this.oInStream.close();
             this.oOutStream.close();
         } catch (IOException ioe) {
             System.out.println("[!] IOException! ServerConnection[" + this.serverId + "]");
             ioe.printStackTrace();
-        }
+        }*/
     }
     
 }

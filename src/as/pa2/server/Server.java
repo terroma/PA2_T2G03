@@ -68,8 +68,6 @@ public class Server implements Serializable, Runnable {
         
         this.requestQueue = new LinkedBlockingQueue<RequestHandler>();
         this.threadPool = Executors.newFixedThreadPool(10);
-        System.out.println(host + " : " + port);
-        System.out.println("[*] Starting Server["+id+"] ...");
     }
     
     public Server(String id) {
@@ -79,16 +77,17 @@ public class Server implements Serializable, Runnable {
     
     public Server(ServerGUI serverGUI){
         this.serverGUI = serverGUI;
+        isAliveFlag = false;
     }
     
     @Override
     public void run() {
-        serverGUI.updateLogs("Starting Server ["+id+"]");
+        serverGUI.updateLogs("Starting Server ["+id+"]!");
         synchronized( this ) {
             this.runningThread = Thread.currentThread();
         }
         openServerSocket();
-        System.out.println("[*] Server["+id+"] Connected ...");
+        serverGUI.updateLogs("Server ["+id+"] Connected.");
         notifyMonitor(monitorIp, monitorPort);
         (new Thread(new Runnable() {
             @Override
@@ -97,10 +96,8 @@ public class Server implements Serializable, Runnable {
                     ServerSocket srvSckt = null;
                     try {
                         srvSckt = new ServerSocket(2000 , 10, InetAddress.getByName(host));
-                        System.out.println("[*] Server["+serverId+"] Accepting Ping! ");
+                        //serverGUI.updateLogs("Server["+serverId+"] Accepting Ping! ");
                         srvSckt.accept();
-                        //System.out.println("[*] Server["+serverId+"] Closing ping socket! ");
-                        //srvSckt.close();
                     } catch (IOException ex) {
                         //System.out.println("[*] Server["+serverId+"] Error openning ping socket! ");
                     }
@@ -113,7 +110,7 @@ public class Server implements Serializable, Runnable {
             
             try {
                 clientSocket = this.serverSocket.accept();
-                System.out.println("[*] Server["+serverId+"] "
+               serverGUI.updateLogs("[*] Server["+serverId+"] "
                     + "Accepted Connection: "+clientSocket.getInetAddress().getHostAddress()
                         +":"+clientSocket.getPort());
                 
@@ -123,7 +120,7 @@ public class Server implements Serializable, Runnable {
                 
             } catch (IOException ioe) {
                 if (isStopped()) {
-                    System.out.println("Server Stopped.");
+                    serverGUI.updateLogs("Server Stopped!");
                     break;
                 }
                 throw new RuntimeException(
@@ -137,7 +134,6 @@ public class Server implements Serializable, Runnable {
         }
         this.threadPool.shutdown();
         this.stop();
-        System.out.println("Server Stopped.");
     }
     
     public void sendStatistics(int threadId, int requestId) throws IOException {
@@ -150,16 +146,13 @@ public class Server implements Serializable, Runnable {
     
     private void notifyMonitor(String monitorIp, int monitorPort) {
         try {
-            System.out.println("[*] Server["+this.id+"]: openning monitor socket.");
+            //System.out.println("[*] Server["+this.id+"]: openning monitor socket.");
             this.monitorSocket = new Socket(monitorIp, monitorPort);
-            System.out.println("[*] Server["+this.id+"]: monitor socket openned.");
+            //System.out.println("[*] Server["+this.id+"]: monitor socket openned.");
             monitorOutStream = new ObjectOutputStream(monitorSocket.getOutputStream());
             monitorOutStream.writeObject(this);
             monitorOutStream.flush();
-            System.out.println("[*] Server["+this.id+"]: monitor notified.");
-            //oOutStream.close();
-            //System.out.println("[*] Server["+this.id+"]: closing monitor connection.");
-            //this.monitorSocket.close();
+           // System.out.println("[*] Server["+this.id+"]: monitor notified.");
         } catch (IOException ex) {
             System.out.println("[!] Server["+this.id+"]: failed connection to monitor!"+ex.getMessage());
         }
@@ -172,7 +165,7 @@ public class Server implements Serializable, Runnable {
     public synchronized void stop() {
         this.isStopped = true;
         try {
-            System.out.println("Server Stopped!");
+            serverGUI.updateLogs("Server Stopped!");
             this.serverSocket.close();
             this.monitorSocket.close();
         } catch (IOException ioe) {
