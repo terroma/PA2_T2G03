@@ -19,4 +19,6 @@ public interface IFValidate {
     public boolean validateQueueSize(final String queueSize);
     
     public boolean validateMLBfields(final String monitorIP, final String loadBalancerIP, final String clientPort, final String serverPort);
+    
+    public boolean validateUsedIpPort(final String ip, final int port);
 }

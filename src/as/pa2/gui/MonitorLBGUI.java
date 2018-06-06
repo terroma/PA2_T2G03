@@ -241,7 +241,7 @@ public class MonitorLBGUI extends javax.swing.JFrame {
                     }else if(!validator.validateIP(loadBalancerIP)){
                         jLogs.append("Load Balancer IP is not valid! \n");
                         return null;
-                    }else if(monitor.equals(loadBalancerIP)){
+                    }else if(monitorIP.equals(loadBalancerIP)){
                         jLogs.append("Monitor IP and Load Balancer IP need to be different! \n");
                         return null;
                     }else if(!validator.validatePort(clientPort)){

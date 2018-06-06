@@ -50,11 +50,9 @@ public class ServerGUI extends javax.swing.JFrame {
         jMonitorPort = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         JLogs = new javax.swing.JTextArea();
-        jLoadBPort = new javax.swing.JTextField();
         jQueueSize = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
         jServerIP = new javax.swing.JTextField();
@@ -94,16 +92,12 @@ public class ServerGUI extends javax.swing.JFrame {
 
         jLabel4.setText("Monitor Port:");
 
-        jLabel5.setText("Load-Balancer Port:");
-
         jLabel6.setText("Queue Size:");
 
         JLogs.setEditable(false);
         JLogs.setColumns(20);
         JLogs.setRows(5);
         jScrollPane2.setViewportView(JLogs);
-
-        jLoadBPort.setText("5002");
 
         jQueueSize.setText("10");
 
@@ -119,41 +113,40 @@ public class ServerGUI extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jScrollPane2)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 436, Short.MAX_VALUE)
-                        .addComponent(jButton2)
-                        .addGap(18, 18, 18)
-                        .addComponent(jButton1))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
             .addGroup(layout.createSequentialGroup()
-                .addGap(45, 45, 45)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel5)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.Alignment.TRAILING))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLoadBPort)
-                    .addComponent(jMonitorIP, javax.swing.GroupLayout.DEFAULT_SIZE, 148, Short.MAX_VALUE)
-                    .addComponent(jServerIP))
-                .addGap(27, 27, 27)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(jLabel4)
-                    .addComponent(jLabel6)
-                    .addComponent(jLabel7))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jMonitorPort, javax.swing.GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
-                    .addComponent(jQueueSize, javax.swing.GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
-                    .addComponent(jServerPort))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jScrollPane2)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(0, 436, Short.MAX_VALUE)
+                                .addComponent(jButton2)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton1))
+                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addGap(0, 0, Short.MAX_VALUE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(89, 89, 89)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel3)
+                            .addComponent(jLabel2)
+                            .addComponent(jLabel6))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jMonitorIP, javax.swing.GroupLayout.DEFAULT_SIZE, 148, Short.MAX_VALUE)
+                            .addComponent(jServerIP)
+                            .addComponent(jQueueSize))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 67, Short.MAX_VALUE)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                            .addComponent(jLabel4)
+                            .addComponent(jLabel7))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jMonitorPort, javax.swing.GroupLayout.DEFAULT_SIZE, 113, Short.MAX_VALUE)
+                            .addComponent(jServerPort))))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -172,13 +165,11 @@ public class ServerGUI extends javax.swing.JFrame {
                     .addComponent(jLabel3)
                     .addComponent(jLabel4)
                     .addComponent(jMonitorPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(28, 28, 28)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel5)
-                    .addComponent(jLabel6)
-                    .addComponent(jLoadBPort, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jQueueSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(26, 26, 26)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel6)
+                    .addComponent(jQueueSize, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(28, 28, 28)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -201,7 +192,6 @@ public class ServerGUI extends javax.swing.JFrame {
                     String serverPort = jServerPort.getText();
                     String monitorIP = jMonitorIP.getText();
                     String monitorPort = jMonitorPort.getText();
-                    String loadBPort = jLoadBPort.getText();
                     String queueSize = jQueueSize.getText();
                                    
                     if(!validator.validateIP(serverIP)){
@@ -216,17 +206,17 @@ public class ServerGUI extends javax.swing.JFrame {
                     }else if(!validator.validatePort(monitorPort)){
                         JLogs.append("Monitor Port is not valid! \n");
                         return null;
-                    }else if(!validator.validatePort(loadBPort)){
-                        JLogs.append("Load Balancer Port is not valid! \n");
-                        return null;
                     }else if (!validator.validateQueueSize(queueSize)){
                         JLogs.append("Queue Size is not valid! \n");
                         return null;
                     }else if(serverIP.equals(monitorIP)){
                         JLogs.append("Server IP can't be equal to Monitor IP! \n");
                         return null;   
-                    }else if(serverPort.equals(monitorPort) || serverPort.equals(loadBPort) || monitorPort.equals(loadBPort)){
+                    }else if(serverPort.equals(monitorPort)){
                         JLogs.append("Ports need to be diferent! \n");
+                        return null;
+                    }else if(!validator.validateUsedIpPort(serverIP, Integer.parseInt(serverPort))){
+                        JLogs.append("IP or Port already in use. \n");
                         return null;
                     }else{
                         estado = true;
@@ -235,14 +225,12 @@ public class ServerGUI extends javax.swing.JFrame {
                         jServerPort.setEnabled(false);
                         jMonitorIP.setEnabled(false);
                         jMonitorPort.setEnabled(false);
-                        jLoadBPort.setEnabled(false);
                         jQueueSize.setEnabled(false);
                                          
                         serverobj.setHost(serverIP);
                         serverobj.setPort(Integer.parseInt(serverPort));
                         serverobj.setMonitorIp(monitorIP);
                         serverobj.setMonitorPort(Integer.parseInt(monitorPort));
-                        serverobj.setLoadBalancerPort(Integer.parseInt(loadBPort));
                         serverobj.setQueueSize(Integer.parseInt(queueSize));
                                 
                         //serverobj = new Server(serverIP, Integer.parseInt(serverPort), monitorIP, Integer.parseInt(monitorPort), Integer.parseInt(loadBPort), Integer.parseInt(queueSize));
@@ -273,7 +261,6 @@ public class ServerGUI extends javax.swing.JFrame {
                     jServerPort.setEnabled(true);
                     jMonitorIP.setEnabled(true);
                     jMonitorPort.setEnabled(true);
-                    jLoadBPort.setEnabled(true);
                     jQueueSize.setEnabled(true);
                     
                     serverobj.stop();
@@ -332,10 +319,8 @@ public class ServerGUI extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
-    private javax.swing.JTextField jLoadBPort;
     private javax.swing.JTextField jMonitorIP;
     private javax.swing.JTextField jMonitorPort;
     private javax.swing.JTextField jQueueSize;

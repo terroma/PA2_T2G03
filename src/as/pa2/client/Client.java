@@ -53,12 +53,12 @@ public class Client {
     
     private void initClient(String host, int port) {
         try {
-            clientGUI.updateLogs("Starting Client["+clientId+"]. \n");
+            clientGUI.updateLogs("Starting Client ["+clientId+"]. \n");
             this.connectedAddress = Inet4Address.getByName(host);
             this.loadBalancerPort = port;
             this.tcpSocket = new Socket(host, port);
             
-            clientGUI.updateLogs("Client["+clientId+"] Connected on port:"+loadBalancerPort + "\n");
+            clientGUI.updateLogs("Client ["+clientId+"] Connected on port:"+loadBalancerPort + "\n");
             
             this.oOutStream = new ObjectOutputStream(tcpSocket.getOutputStream());
 
