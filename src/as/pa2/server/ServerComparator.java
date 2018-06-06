@@ -10,8 +10,11 @@ import java.util.Comparator;
 
 /**
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public class ServerComparator implements Comparator<Server>, Serializable {
 
     private static final long serialVersionUID = 1L;

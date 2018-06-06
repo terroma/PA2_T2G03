@@ -5,16 +5,18 @@
  */
 package as.pa2.monitor.availability;
 
-import as.pa2.loadbalancer.IFLoadBalancer;
 import as.pa2.monitor.IFMonitor;
 import as.pa2.server.Server;
 
 /**
  * Interface that defines how we "Ping" a server to check if its alive.
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
-public interface IFPing {
+
+public interface IFHeartBeat {
     
     /**
      * Checks whether the given <coce>Server</code> is "alive"

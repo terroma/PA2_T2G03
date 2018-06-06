@@ -6,15 +6,14 @@
 package as.pa2.gui.validation;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 /**
  *
- * @author bruno
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
 public class AbstractValidate implements IFValidate{
 

@@ -11,10 +11,12 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * Round Robin Rule.
  *
- * @author 
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public class RoundRobinRule extends AbstractLoadBalancerRule {
     
     private AtomicInteger nextServerCyclicCounter;

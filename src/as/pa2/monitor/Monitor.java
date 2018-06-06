@@ -6,9 +6,7 @@
 package as.pa2.monitor;
 
 import as.pa2.gui.MonitorLBGUI;
-import as.pa2.monitor.availability.IFPing;
-import as.pa2.monitor.availability.IFPingStrategy;
-import as.pa2.monitor.availability.SerialPingStrategy;
+import as.pa2.monitor.availability.SerialHeartBeatStrategy;
 import as.pa2.monitor.listeners.ServerListChangeListener;
 import as.pa2.monitor.listeners.ServerStatusChangeListener;
 import as.pa2.server.Server;
@@ -35,16 +33,21 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import as.pa2.monitor.availability.IFHeartBeat;
+import as.pa2.monitor.availability.IFHeartBeatStrategy;
 
 /**
  *
- * @author bruno
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public class Monitor extends AbstractMonitor implements Runnable {
 
-    private final static SerialPingStrategy DEFAULT_PING_STRATEGY = new SerialPingStrategy();
-    protected IFPingStrategy pingStrategy = DEFAULT_PING_STRATEGY;
-    protected IFPing ping = null;
+    private final static SerialHeartBeatStrategy DEFAULT_HEARTBEAT_STRATEGY = new SerialHeartBeatStrategy();
+    protected IFHeartBeatStrategy heartBeatStrategy = DEFAULT_HEARTBEAT_STRATEGY;
+    protected IFHeartBeat heartBeat = null;
     
     protected volatile List<Server> allServersList = Collections.synchronizedList(new ArrayList<Server>());
     protected volatile List<Server> upServersList = Collections.synchronizedList(new ArrayList<Server>());
@@ -53,11 +56,11 @@ public class Monitor extends AbstractMonitor implements Runnable {
     protected ReadWriteLock upServerLock = new ReentrantReadWriteLock();
     
     protected Timer lbTimer = null;
-    protected int pingIntervalSeconds = 10;
-    protected int maxTotalPingTimeSeconds = 5;
+    protected int heartBeatIntervalSeconds = 10;
+    protected int maxTotalHeartBeatTimeSeconds = 5;
     protected Comparator<Server> serverComparator = new ServerComparator();
     
-    protected AtomicBoolean pingInProgress = new AtomicBoolean(false);
+    protected AtomicBoolean heartBeatInProgress = new AtomicBoolean(false);
     
     private List<ServerListChangeListener> changeListeners = new CopyOnWriteArrayList<ServerListChangeListener>(); 
     private List<ServerStatusChangeListener> serverStatusListeners = new CopyOnWriteArrayList<ServerStatusChangeListener>();
@@ -75,17 +78,17 @@ public class Monitor extends AbstractMonitor implements Runnable {
         this.port = port;
         this.isStopped = false;
         this.threadPool = Executors.newFixedThreadPool(10);
-        setupPingTask();
+        setupHeartBeatTask();
     }
     
-    public Monitor(String ip, int port, IFPing ping, IFPingStrategy pingStrategy) {
+    public Monitor(String ip, int port, IFHeartBeat ping, IFHeartBeatStrategy pingStrategy) {
         this.ip = ip;
         this.port = port;
-        this.ping = ping;
-        this.pingStrategy = pingStrategy;
+        this.heartBeat = ping;
+        this.heartBeatStrategy = pingStrategy;
         this.isStopped = false;
         this.threadPool = Executors.newFixedThreadPool(10);
-        setupPingTask();
+        setupHeartBeatTask();
     }
     
     public Monitor(MonitorLBGUI monitorLbGui){
@@ -174,7 +177,8 @@ public class Monitor extends AbstractMonitor implements Runnable {
                     }
                 }
             } catch (IOException ex) {
-                ex.printStackTrace();
+                updateLogs("Server down.");
+                //ex.printStackTrace();
             }
         }
     }
@@ -313,8 +317,8 @@ public class Monitor extends AbstractMonitor implements Runnable {
         serverStatusListeners.remove(listener);
     }
     
-    public boolean isPingInProgress() {
-        return pingInProgress.get();
+    public boolean isHeartBeatInProgress() {
+        return heartBeatInProgress.get();
     }
     
     
@@ -360,13 +364,13 @@ public class Monitor extends AbstractMonitor implements Runnable {
             // this will reset readyToServe flag to true on all servers
             // regardless wether previous connections are success or not
             allServersList = allServers;
-            if (canSkipPing()) {
+            if (canSkipHeartBeat()) {
                 for (Server s: allServersList) {
                     s.setAlive(true);
                 }
                 upServersList = allServersList;
             } else if (listChanged) {
-                forceQuickPing();
+                forceQuickHeartBeat();
             }
         } finally {
             writeLock.unlock();
@@ -387,18 +391,18 @@ public class Monitor extends AbstractMonitor implements Runnable {
         }
     }
     
-    public IFPing getPing() {
-        return ping;
+    public IFHeartBeat getHeartBeat() {
+        return heartBeat;
     }
     
-    public void setPing(IFPing ping) {
+    public void setHeartBeat(IFHeartBeat ping) {
         if (ping != null) {
-            if (!ping.equals(this.ping)) {
-                this.ping = ping;
-                setupPingTask();
+            if (!ping.equals(this.heartBeat)) {
+                this.heartBeat = ping;
+                setupHeartBeatTask();
             }
         } else {
-            this.ping = null;
+            this.heartBeat = null;
             lbTimer.cancel();
         }
     }
@@ -454,7 +458,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
     }
     
     public synchronized void shutdown() {
-        cancelPingTask();
+        cancelHeartBeatTask();
         this.isStopped = true;
         try {
             this.monitorSocket.close();
@@ -465,95 +469,95 @@ public class Monitor extends AbstractMonitor implements Runnable {
     }
     
     /*--------------------- PING PART OF LOADBALANCER ---------------------*/
-    public void cancelPingTask() {
+    public void cancelHeartBeatTask() {
         if (lbTimer != null) {
             lbTimer.cancel();
         }
     }
     
-    public int getMaxTotalPingTime() {
-        return maxTotalPingTimeSeconds;
+    public int getMaxTotalHeartBeatTime() {
+        return maxTotalHeartBeatTimeSeconds;
     }
     
-    public void setMaxTotalPingTime(int maxTotalPingTimeSeconds) {
+    public void setMaxTotalHeartBeatTime(int maxTotalPingTimeSeconds) {
         if (maxTotalPingTimeSeconds < 1) {
             return;
         }
-        this.maxTotalPingTimeSeconds = maxTotalPingTimeSeconds;
+        this.maxTotalHeartBeatTimeSeconds = maxTotalPingTimeSeconds;
     }
     
-    public int getPingInterval() {
-        return pingIntervalSeconds;
+    public int getHeartBeatInterval() {
+        return heartBeatIntervalSeconds;
     }
     
-    public void setPingInterval(int pingIntervalSeconds) {
+    public void setHeartBeatInterval(int pingIntervalSeconds) {
         if (pingIntervalSeconds < 1) {
             return;
         }
-        this.pingIntervalSeconds = pingIntervalSeconds;
-        setupPingTask();
+        this.heartBeatIntervalSeconds = pingIntervalSeconds;
+        setupHeartBeatTask();
     }
     /**
-     * Force an immediate ping, if we're not currently pinging and don't
-     * have a quick-ping already scheduled.
+     * Force an immediate heartBeat, if we're not currently pinging and don't
+ have a quick-heartBeat already scheduled.
      */
-    public void forceQuickPing() {
-        if (canSkipPing()) {
+    public void forceQuickHeartBeat() {
+        if (canSkipHeartBeat()) {
             return;
         }        
         try {
-            new Pinger(pingStrategy).runPinger();
+            new HeartBeater(heartBeatStrategy).runHeartBeater();
         } catch (Exception e) {
             updateLogs("Monitor: Error running forceQuickPing()" + e);
         }
     }
     
-    private boolean canSkipPing() {
-        return ping == null;
+    private boolean canSkipHeartBeat() {
+        return heartBeat == null;
     }
     
-    private void setupPingTask() {
-        if (canSkipPing()) {
+    private void setupHeartBeatTask() {
+        if (canSkipHeartBeat()) {
             return;
         }
         if (lbTimer != null) {
             lbTimer.cancel();
         }
         lbTimer = new Timer("Monitor-HeartBeatTimer", true);
-        lbTimer.schedule(new PingTask(), 0, pingIntervalSeconds * 1000);
-        System.out.println("[*] Monitor: setupPingTask ...");
+        lbTimer.schedule(new HeartBeatTask(), 0, heartBeatIntervalSeconds * 1000);
+        //System.out.println("[*] Monitor: setupHeartBeatTask ...");
     }
     
     /**
      * TimerTask that keeps runs every X seconds to check the status of each
      * server/node in the Server List
      */
-    class PingTask extends TimerTask {
+    class HeartBeatTask extends TimerTask {
         @Override
         public void run() {
             try {
-                new Pinger(pingStrategy).runPinger();
+                new HeartBeater(heartBeatStrategy).runHeartBeater();
             } catch (Exception e) {
-                System.out.println("Monitor: Error pinging.");
-                e.printStackTrace();
+                //System.out.println("Monitor: Error pinging.");
+               // e.printStackTrace();
             }
         }
     }
     
     /**
-     * Class that contains the mechanism to "ping" all the instances of
-     * servers/nodes
+     * Class that contains the mechanism to "heartBeat" all the instances of
+ servers/nodes
      */
-    class Pinger {
+    class HeartBeater {
         
-        private final IFPingStrategy pingerStrategy;
+        private final IFHeartBeatStrategy pingerStrategy;
         
-        public Pinger(IFPingStrategy pingerStrategy) {
+        public HeartBeater(IFHeartBeatStrategy pingerStrategy) {
             this.pingerStrategy = pingerStrategy;
         }
         
-        public void runPinger() throws Exception {
-            if (!pingInProgress.compareAndSet(false, true)) {
+        public void runHeartBeater() throws Exception {
+            if (!heartBeatInProgress.compareAndSet(false, true)) {
                 return; // Ping in progress
             }
             //System.out.println("[*] Monitor: pinging ...");
@@ -575,7 +579,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                 allLock.unlock();
                 
                 int numCandidates = allServers.length;
-                results = pingerStrategy.pingServers(ping, allServers);
+                results = pingerStrategy.pingServers(heartBeat, allServers);
                 
                 final List<Server> newUpList = new ArrayList<Server>();
                 final List<Server> changedServers = new ArrayList<Server>();
@@ -604,15 +608,11 @@ public class Monitor extends AbstractMonitor implements Runnable {
                     notifyServerStatusChangeListener(changedServers);
                 }
             } finally {
-                pingInProgress.set(false);
+                heartBeatInProgress.set(false);
                 if (monitorLBGui != null)
                     monitorLBGui.updateServerList(getAllServers());
             }
         }
     }
     
-    public static void main(String[] args) {
-        Monitor m = new Monitor("127.0.0.2", 5000);
-        m.run();
-    } 
 }

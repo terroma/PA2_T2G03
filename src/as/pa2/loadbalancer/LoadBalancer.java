@@ -9,8 +9,8 @@ import as.pa2.gui.MonitorLBGUI;
 import as.pa2.loadbalancer.strategies.IFRule;
 import as.pa2.loadbalancer.strategies.RoundRobinRule;
 import as.pa2.monitor.Monitor;
-import as.pa2.monitor.availability.SerialPing;
-import as.pa2.monitor.availability.SerialPingStrategy;
+import as.pa2.monitor.availability.SerialHeartBeat;
+import as.pa2.monitor.availability.SerialHeartBeatStrategy;
 import as.pa2.protocol.PiRequest;
 import as.pa2.protocol.PiResponse;
 import as.pa2.server.Server;
@@ -27,8 +27,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 /**
  * Load-Balancer Implementation.
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public class LoadBalancer implements IFLoadBalancer, Runnable{
     
     private final static IFRule DEFAULT_RULE = new RoundRobinRule();
@@ -168,7 +171,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         updateLogs("LoadBalancer Started!");
         
         //monitor = new Monitor(monitorIp, monitorPort, null, null);
-        monitor = new Monitor(monitorIp, monitorPort, new SerialPing(), new SerialPingStrategy());
+        monitor = new Monitor(monitorIp, monitorPort, new SerialHeartBeat(), new SerialHeartBeatStrategy());
         //monitor = new Monitor(monitorIp, monitorPort, new ParallelPing(), new ParallelPingStategy());
         if(gui != null)
             monitor.setMonitorLBGui(this.gui);
@@ -180,15 +183,18 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         clientConnectionsThread.start();
         while (!isStopped()) {
             try {
-                
+
                 /* choose and handle server connections */
-                if (!requestQueue.isEmpty()) {
+                if (!requestQueue.isEmpty() && !getReachableServers().isEmpty()) {
                     Server choosenServer = chooseServer(this);
-                    updateLogs("LoadBalancer: choosen server " + choosenServer.getHost());
+                    updateLogs("LoadBalancer received request [" + requestQueue.peek().toString() + "]");
+                    System.out.println("LoadBalancer received request [" + requestQueue.peek().toString() + "]");
+                    updateLogs("LoadBalancer choosen server " + choosenServer.getHost());
+                    System.out.println("LoadBalancer choosen server " + choosenServer.getHost());
                     Socket serverSocket = new Socket(choosenServer.getHost(),choosenServer.getPort());
                     serverConnections.put(choosenServer, serverSocket);
                     //System.out.println("Created new server socket!");
-                    this.serverConnectionsPool.execute(new ServerConnection(clientConnections, handledRequests, requestQueue,serverConnections.get(choosenServer), choosenServer.getId(), requestQueue.take()));   
+                    this.serverConnectionsPool.execute(new ServerConnection(clientConnections, handledRequests, requestQueue,serverConnections.get(choosenServer), choosenServer.getId(), requestQueue.take()));
                 }
             } catch (IOException ioe) {
                 if (isStopped()) {
@@ -202,7 +208,6 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         }
         this.clientConnnectionsPool.shutdownNow();
         this.serverConnectionsPool.shutdownNow();
-        //this.stop();
     }
 
     public String getIp() {
@@ -274,7 +279,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                     /* handle client connections */ 
                     clientSocket = socket.accept();
                     updateLogs("LoadBalancer recieved a new client connection.");
-                    ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount);
+                    ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount, gui);
                     clientConnections.put(clientCount, newConnection);
                     clientCount++;
                     clientConnnectionsPool.execute(newConnection);
@@ -297,11 +302,6 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         if (gui != null) {
             gui.updateLogs(s);
         }
-    }
-    
-    public static void main(String[] args) {
-        LoadBalancer lb = new LoadBalancer("127.0.0.1",5000,"127.0.0.2",5000);
-        lb.run();
     }
     
 }

@@ -7,7 +7,9 @@ package as.pa2.gui.validation;
 
 /**
  *
- * @author bruno
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
 public interface IFValidate {
     

@@ -11,8 +11,11 @@ import as.pa2.loadbalancer.IFLoadBalancer;
  * Class that provides a default implementation for 
  * getting and setting load-balancer.
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public abstract class AbstractLoadBalancerRule implements IFRule {
     
     private IFLoadBalancer lb;

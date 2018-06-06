@@ -9,8 +9,11 @@ import java.io.Serializable;
 
 /**
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public class PiResponse extends PiRequest implements Serializable{
     
     private double pi;

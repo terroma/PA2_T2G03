@@ -5,15 +5,18 @@
  */
 package as.pa2.monitor.availability;
 
-import as.pa2.monitor.availability.IFPing;
 import as.pa2.server.Server;
+import as.pa2.monitor.availability.IFHeartBeat;
 
 /**
  * Defines the strategy, used to ping all servers registered.
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
-public interface IFPingStrategy {
+
+public interface IFHeartBeatStrategy {
     
-    public boolean[] pingServers(IFPing ping, Server[] servers);
+    public boolean[] pingServers(IFHeartBeat ping, Server[] servers);
 }

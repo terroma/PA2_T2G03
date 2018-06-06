@@ -10,27 +10,30 @@ import as.pa2.server.Server;
 /**
  * Serial Pinging implementation.
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
-public class SerialPingStrategy implements IFPingStrategy {
+
+public class SerialHeartBeatStrategy implements IFHeartBeatStrategy {
 
     @Override
-    public boolean[] pingServers(IFPing ping, Server[] servers) {
+    public boolean[] pingServers(IFHeartBeat ping, Server[] servers) {
         int numCandidates = servers.length;
         boolean[] results = new boolean[numCandidates];
-        System.out.println("PingTask executing "
-                +numCandidates+" servers configured");
+        //System.out.println("PingTask executing "
+        //        +numCandidates+" servers configured");
         for (int i=0; i < numCandidates; i++) {
             results[i] = false;
             try {
                 if (ping != null) {
                     results[i] = ping.isAlive(servers[i]);
-                    System.out.println("PingResult server:"+servers[i].getId()+" result: "+results[i]);
+                    //System.out.println("PingResult server:"+servers[i].getId()+" result: "+results[i]);
                 }
             } catch (Exception e) {
-                System.out.println("Exception while pinging Server: "
-                        +servers[i]);
-                e.printStackTrace();
+                //System.out.println("Exception while pinging Server: "
+                //        +servers[i]);
+                //e.printStackTrace();
             }
         }
         return results;

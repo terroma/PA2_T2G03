@@ -11,8 +11,11 @@ import java.util.List;
 /**
  * Interface that defines operations for a software load-balancer.
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public interface IFLoadBalancer {
     
     /**

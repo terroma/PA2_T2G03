@@ -13,30 +13,31 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Parallel Ping Implementation.
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
-public class ParallelPingStategy implements IFPingStrategy {
+
+public class ParallelHeartBeatStategy implements IFHeartBeatStrategy {
 
     @Override
-    public boolean[] pingServers(IFPing ping, Server[] servers) {
+    public boolean[] pingServers(IFHeartBeat ping, Server[] servers) {
         int numCandidates = servers.length;
         boolean[] results = new boolean[numCandidates];
-        System.out.println("PingTask executing "
-                +numCandidates+" servers configured");
+        //System.out.println("PingTask executing "
+        //        +numCandidates+" servers configured");
         
         if (numCandidates > 0) {
             ExecutorService executor = Executors.newFixedThreadPool(numCandidates);
             List<Future<Boolean>> list = new ArrayList<Future<Boolean>>(numCandidates);
             Callable<Boolean> callable = null;
             for (int i=0; i < numCandidates; i++) {
-                callable = new ParallelPing(servers[i].getHost(),2000);
-                //callable = new ParallelPing(servers[i].getHost(),servers[i].getPort());
+                callable = new ParallelHeartBeat(servers[i].getHost(),2000);
+                //callable = new ParallelHeartBeat(servers[i].getHost(),servers[i].getPort());
                 Future<Boolean> future = executor.submit(callable);
                 list.add(future);
             }
@@ -45,7 +46,7 @@ public class ParallelPingStategy implements IFPingStrategy {
             try {
                  results = toPrimitiveArray(list);
             } catch (InterruptedException | ExecutionException ex) {
-                System.out.println("Error converting list to array!"+ex.getLocalizedMessage());
+                //System.out.println("Error converting list to array!"+ex.getLocalizedMessage());
             }
         }
         return results;

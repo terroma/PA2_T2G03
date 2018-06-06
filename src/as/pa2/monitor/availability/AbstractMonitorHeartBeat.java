@@ -11,9 +11,12 @@ import as.pa2.monitor.IFMonitor;
  * Class that provides the basic implementation of determining the 
  * suitability of a Server (node).
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
-public abstract class AbstractMonitorPing implements IFPing {
+
+public abstract class AbstractMonitorHeartBeat implements IFHeartBeat {
     
     private IFMonitor monitor;
     

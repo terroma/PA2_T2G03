@@ -11,8 +11,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public class ServerConnection implements Runnable {
 
     protected Socket tcpSocket;

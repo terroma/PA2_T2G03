@@ -15,8 +15,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public class RequestHandler implements Runnable {
 
     protected Socket clientSocket;
@@ -69,12 +72,14 @@ public class RequestHandler implements Runnable {
                     server.sendStatistics((int)Thread.currentThread().getId(), request.getRequestId());
                     //System.out.println("ThreadId: "+Thread.currentThread().getId()+" requestID: "+request.getRequestId());
                     server.getServerGUI().updateLogs("Server: " + server.getHost() + " received request: [" + request.toString() + " ]");
+                    System.out.println("Server: " + server.getHost() + " received request: [" + request.toString() + " ]");
                     server.getServerGUI().updateLogs("Server: " + server.getHost() + " is computing request");
                     Double pi = new Pi().compute(request.getPrecision(), request.getDelay());
                     response = new PiResponse(request.getClientId(), request.getRequestId(), 2, request.getPrecision(), request.getDelay(), pi);
                     server.getServerGUI().updateLogs("Server: " + server.getHost() + " finish computing and is trying to send result.");
                     oOutStream.writeObject(response);
                     server.getServerGUI().updateLogs("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
+                    System.out.println("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
                     oOutStream.flush();
                     this.processing = false;
                     requestQueue.remove(this);

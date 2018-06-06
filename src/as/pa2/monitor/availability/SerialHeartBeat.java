@@ -16,9 +16,12 @@ import java.net.SocketTimeoutException;
 
 /**
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
-public class SerialPing extends AbstractMonitorPing {
+
+public class SerialHeartBeat extends AbstractMonitorHeartBeat {
 
     @Override
     public boolean isAlive(Server server) {

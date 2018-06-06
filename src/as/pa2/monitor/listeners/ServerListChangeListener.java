@@ -10,8 +10,11 @@ import java.util.List;
 
 /**
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public interface ServerListChangeListener {
     
     public void serverListChanged(List<Server> oldList, List<Server> newList);

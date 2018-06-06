@@ -13,8 +13,11 @@ import as.pa2.server.Server;
  * as a Strategy for load-balancing.
  * EX: Round Robin, Response Time based etc.
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public interface IFRule {
     
     /**

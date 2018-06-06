@@ -13,6 +13,13 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.UUID;
 
+/**
+ *
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
+ */
+
 public class Client {
 
     private InetAddress connectedAddress;
@@ -53,24 +60,26 @@ public class Client {
     
     private void initClient(String host, int port) {
         try {
-            clientGUI.updateLogs("Starting Client ["+clientId+"]. \n");
+            updateLogs("Starting Client ["+clientId+"]. \n");
+            System.out.println("Starting Client ["+clientId+"]. \n");
             this.connectedAddress = Inet4Address.getByName(host);
             this.loadBalancerPort = port;
             this.tcpSocket = new Socket(host, port);
             
-            clientGUI.updateLogs("Client ["+clientId+"] Connected on port:"+loadBalancerPort + "\n");
+            updateLogs("Client ["+clientId+"] Connected on port:"+loadBalancerPort + "\n");
+            System.out.println("Client ["+clientId+"] Connected on port:"+loadBalancerPort + "\n");
             
             this.oOutStream = new ObjectOutputStream(tcpSocket.getOutputStream());
 
             (new Thread(new InputListeningThread())).start();
 
         } catch (SocketException se) {
-            clientGUI.updateLogs("[!] Client ["+clientId+"] failed to connect, please check if LoadBalancer is running. \n");
+            updateLogs("[!] Client ["+clientId+"] failed to connect, please check if LoadBalancer is running. \n");
         } catch (UnknownHostException uhe) {
-            clientGUI.updateLogs("[!] UnknownHostException! Client["+clientId+"] \n");
+            updateLogs("[!] UnknownHostException! Client["+clientId+"] \n");
             uhe.printStackTrace();
         } catch (IOException ioe) {
-            clientGUI.updateLogs("[!] IOException! Client["+clientId+"] \n");
+            updateLogs("[!] IOException! Client["+clientId+"] \n");
             ioe.printStackTrace();
         }
 
@@ -80,7 +89,7 @@ public class Client {
         try {
             this.tcpSocket = new Socket(ip, port);
         } catch (Exception e) {
-            clientGUI.updateLogs("Error openning socket"+e.getMessage() + "\n");
+            updateLogs("Error openning socket"+e.getMessage() + "\n");
         }
     }
     
@@ -89,12 +98,14 @@ public class Client {
             if(!this.tcpSocket.isConnected())
                 return;
             try {
-                clientGUI.updateLogs("Client["+clientId+"] Sending Request: \n");
-                clientGUI.updateLogs("[ "+request.toString() + " ] \n");
+                updateLogs("Client["+clientId+"] Sending Request: \n");
+                System.out.println("Client["+clientId+"] Sending Request: \n");
+                updateLogs("[ "+request.toString() + " ] \n");
+                System.out.println("[ "+request.toString() + " ] \n");
                 this.oOutStream.writeObject(request);
                 this.oOutStream.flush();
             } catch (IOException ioe) {
-                clientGUI.updateLogs("[!] IOException! Client["+clientId+"] \n");
+                updateLogs("[!] IOException! Client["+clientId+"] \n");
                 ioe.printStackTrace();
             }
             
@@ -107,7 +118,7 @@ public class Client {
             this.oOutStream.close();
             this.tcpSocket.close();
         } catch (IOException ex) {
-            clientGUI.updateLogs("[!] IOException :"+ex.getMessage() + "\n");
+            updateLogs("[!] IOException :"+ex.getMessage() + "\n");
         }
     }
     
@@ -123,15 +134,17 @@ public class Client {
                 while (true) {
                     PiResponse response = (PiResponse) oInStream.readObject();
                     if (response != null) {
-                        clientGUI.updateLogs("Client ["+clientId+"] Received response: \n");
-                        clientGUI.updateLogs("[ "+ response.toString() + " ] \n");
+                        updateLogs("Client ["+clientId+"] Received response: \n");
+                        System.out.println("Client ["+clientId+"] Received response: \n");
+                        updateLogs("[ "+ response.toString() + " ] \n");
+                        System.out.println("[ "+ response.toString() + " ] \n");
                     }
                 }
             } catch (IOException ioe) {
-                clientGUI.updateLogs("[!] Connection Failed, check LoadBalancer status.");
+                updateLogs("[!] Connection Failed, check LoadBalancer status.");
                 //ioe.printStackTrace();
             } catch (ClassNotFoundException ex) {
-                clientGUI.updateLogs("[!] ClassNotFoundException! Client["+clientId+"] \n");
+                updateLogs("[!] ClassNotFoundException! Client["+clientId+"] \n");
                 //ex.printStackTrace();
             }
         }
@@ -161,8 +174,10 @@ public class Client {
         this.clientId = clientId;
     }
     
-    
-    public static void main(String[] args) throws IOException {
-        //Client c = new Client();
+     private void updateLogs(String s) {
+        if (clientGUI != null) {
+            clientGUI.updateLogs(s);
+        }
     }
+     
 }

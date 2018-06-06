@@ -22,8 +22,11 @@ import java.util.logging.Logger;
 
 /**
  *
- * @author bruno
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public class Server implements Serializable, Runnable {
 
     protected int serverPort;
@@ -148,7 +151,7 @@ public class Server implements Serializable, Runnable {
     
     public void sendStatistics(int threadId, int requestId) throws IOException {
         synchronized (monitorOutStream) {     
-            String toSend = "Server["+id+"]: ThreadId: "+threadId+" processing requestId: "+requestId;
+            String toSend = "Server["+id+"]: Thread: "+threadId+" processing request: "+requestId;
             monitorOutStream.writeUTF(toSend);
             monitorOutStream.flush();
         }
@@ -310,8 +313,4 @@ public class Server implements Serializable, Runnable {
         return hash;
     }
     
-    public static void main(String[] args) {
-        Server s = new Server("127.0.0.8", 5000, "127.0.0.2",0,3);
-        s.run();
-    }
 }

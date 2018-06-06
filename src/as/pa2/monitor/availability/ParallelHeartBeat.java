@@ -17,18 +17,21 @@ import java.util.concurrent.Callable;
 
 /**
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
-public class ParallelPing extends AbstractMonitorPing implements Callable<Boolean> {
+
+public class ParallelHeartBeat extends AbstractMonitorHeartBeat implements Callable<Boolean> {
 
     private String ipToPing;
     private int portToPing;
     
-    public ParallelPing() {
+    public ParallelHeartBeat() {
         
     }
     
-    public ParallelPing(String ipToPing, int portToPing) {
+    public ParallelHeartBeat(String ipToPing, int portToPing) {
         this.ipToPing = ipToPing;
         this.portToPing = portToPing;
     }
