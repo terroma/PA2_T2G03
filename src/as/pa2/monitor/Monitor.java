@@ -45,6 +45,8 @@ import as.pa2.monitor.availability.IFHeartBeatStrategy;
 
 public class Monitor extends AbstractMonitor implements Runnable {
 
+    private static final boolean TEST = false;
+
     private final static SerialHeartBeatStrategy DEFAULT_HEARTBEAT_STRATEGY = new SerialHeartBeatStrategy();
     protected IFHeartBeatStrategy heartBeatStrategy = DEFAULT_HEARTBEAT_STRATEGY;
     protected IFHeartBeat heartBeat = null;
@@ -125,7 +127,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
     public void run() {
         openMonitorSocket();
         updateLogs("Monitor Started!");
-        System.out.println("Monitor Started!");
+        updateDebugLogs("Monitor Started!");
         
         Socket serverSocket = null;
         while (!isStopped()) {
@@ -139,12 +141,12 @@ public class Monitor extends AbstractMonitor implements Runnable {
                     addServer(newServer);
                     this.threadPool.execute(new ServerListeningThread(serverSocket, oInStream));
                     updateLogs("Monitor: accepted connection from server: " + newServer.getId());
-                    System.out.println("Monitor: accepted connection from server: " + newServer.getId());
+                    updateDebugLogs("Monitor: accepted connection from server: " + newServer.getId());
                 }
             } catch (IOException ioe) {
                 if (isStopped()) {
                     updateLogs("Monitor Stopped!");
-                    System.out.println("Monitor Stopped!");
+                    updateDebugLogs("Monitor Stopped!");
                     try {
                         if(serverSocket!=null){
                            serverSocket.close(); 
@@ -177,7 +179,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                     s = oInStream.readUTF();
                     if (s != null) {
                         updateLogs(s);
-                        System.out.println(s);
+                        updateDebugLogs(s);
                     }
                 }
             } catch (IOException ex) {
@@ -472,6 +474,12 @@ public class Monitor extends AbstractMonitor implements Runnable {
         }
     }
     
+    private void updateDebugLogs(String s) {
+        if (TEST) {
+            System.out.println(s);
+        }
+    }
+    
     /*--------------------- PING PART OF LOADBALANCER ---------------------*/
     public void cancelHeartBeatTask() {
         if (lbTimer != null) {
@@ -529,7 +537,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
         }
         lbTimer = new Timer("Monitor-HeartBeatTimer", true);
         lbTimer.schedule(new HeartBeatTask(), 0, heartBeatIntervalSeconds * 1000);
-        //System.out.println("[*] Monitor: setupHeartBeatTask ...");
+        //updateDebugLogs("[*] Monitor: setupHeartBeatTask ...");
     }
     
     /**
@@ -542,7 +550,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
             try {
                 new HeartBeater(heartBeatStrategy).runHeartBeater();
             } catch (Exception e) {
-                //System.out.println("Monitor: Error pinging.");
+                //updateDebugLogs("Monitor: Error pinging.");
                // e.printStackTrace();
             }
         }
@@ -564,7 +572,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
             if (!heartBeatInProgress.compareAndSet(false, true)) {
                 return; // Ping in progress
             }
-            //System.out.println("[*] Monitor: pinging ...");
+            //updateDebugLogs("[*] Monitor: pinging ...");
             // we get to Ping
             Server[] allServers = null;
             boolean[] results = null;

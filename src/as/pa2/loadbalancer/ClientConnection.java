@@ -18,6 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class ClientConnection implements Runnable {
 
+    private static final boolean TEST = false;
     protected Socket tcpSocket;
     protected ObjectInputStream oInStream;
     protected ObjectOutputStream oOutStream;
@@ -52,7 +53,7 @@ public class ClientConnection implements Runnable {
         while ( !isStopped() ) {
             try {
                 PiRequest request = (PiRequest) oInStream.readObject();
-                //System.out.println("[*] ClientConnection handling request "+request.toString());
+                //updateDebugLogs("[*] ClientConnection handling request "+request.toString());
                 if (this.clientId == 0)
                     this.clientId = request.getClientId();
                     
@@ -61,9 +62,9 @@ public class ClientConnection implements Runnable {
                         //request.setClientId(internalId);
                         clientConnections.put(request.getClientId(), this);
                         requestsQueue.put(request);
-                        //System.out.println("[*] ClientConnection request added to list...");
+                        //updateDebugLogs("[*] ClientConnection request added to list...");
                     } catch (InterruptedException ex) {
-                        //System.out.println("[!] ClientConnection["+this.internalId+"] interrupted while waiting to put request in list");
+                        //updateDebugLogs("[!] ClientConnection["+this.internalId+"] interrupted while waiting to put request in list");
                         //ex.printStackTrace();
                     }
                 }       
@@ -72,7 +73,7 @@ public class ClientConnection implements Runnable {
                 this.stop();
                 //ioe.printStackTrace();    
             } catch (ClassNotFoundException ex) {
-                System.out.println("[!] ClassNotFoundException! Client["
+                updateDebugLogs("[!] ClassNotFoundException! Client["
                         +clientId+"]");
                 //ex.printStackTrace();
             }
@@ -85,11 +86,11 @@ public class ClientConnection implements Runnable {
                 return;
             try {
                 response.setClientId(clientId);
-                //System.out.println("[*] ClientConnection["+this.internalId+"]: sending response ...");
+                //updateDebugLogs("[*] ClientConnection["+this.internalId+"]: sending response ...");
                 if (mlb != null)
                     mlb.updateLogs("Sending response to Client: " + clientId);
                 
-                //System.out.println("Sending response to Client: " + clientId);
+                //updateDebugLogs("Sending response to Client: " + clientId);
                 this.oOutStream.writeObject(response);
                 this.oOutStream.flush();
             } catch (IOException ioe) {
@@ -120,4 +121,11 @@ public class ClientConnection implements Runnable {
             mlb.updateLogs("[!] Client [" + clientId + "] connection closed.");
         }
     }
+    
+    private void updateDebugLogs(String s) {
+        if (TEST) {
+            System.out.println(s);
+        }
+    }
+    
 }

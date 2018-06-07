@@ -18,6 +18,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class ServerConnection implements Runnable {
 
+    private static final boolean TEST = false;
     protected Socket tcpSocket;
     protected ObjectInputStream oInStream;
     protected ObjectOutputStream oOutStream;
@@ -46,15 +47,15 @@ public class ServerConnection implements Runnable {
     
     @Override
     public void run() {
-        //System.out.println("[*] ServerConnection[" +this.serverId+ "]: started ...");
+        //updateDebugLogs("[*] ServerConnection[" +this.serverId+ "]: started ...");
         while ( !isStopped() ) {
             try {
                 this.oOutStream = new ObjectOutputStream(this.tcpSocket.getOutputStream());
                 this.oOutStream.writeObject(this.request);
                 this.oOutStream.flush();
             } catch (IOException ex) {
-                System.out.println("[!] ServerConnection[" + this.serverId + "]: Failed to send request ...");
-                System.out.println("[!] ServerConnection[" + this.serverId + "]: Server Down ...");
+                updateDebugLogs("[!] ServerConnection[" + this.serverId + "]: Failed to send request ...");
+                updateDebugLogs("[!] ServerConnection[" + this.serverId + "]: Server Down ...");
                 requestQueue.add(request);
                 this.stop();
             }
@@ -62,19 +63,19 @@ public class ServerConnection implements Runnable {
                 this.oInStream = new ObjectInputStream(this.tcpSocket.getInputStream());
                 PiResponse response = (PiResponse) this.oInStream.readObject();
                 if (response != null) {
-                    //System.out.println("[*] ServerConnection[" + this.serverId + "]: response recieved ...");
+                    //updateDebugLogs("[*] ServerConnection[" + this.serverId + "]: response recieved ...");
                     clientConnections.get(response.getClientId()).sendResponse(response);
-                    //System.out.println("[*] ServerConnection[" + this.serverId + "]: response sent ...");
+                    //updateDebugLogs("[*] ServerConnection[" + this.serverId + "]: response sent ...");
                     handledRequests.put(request, response);
                     this.stop();
                 }
             } catch (IOException ex) {
-                System.out.println("[!] ServerConnection[" + this.serverId + "]: Failed to receive response ...");
-                System.out.println("[!] ServerConnection[" + this.serverId + "]: Server Down ...");
+                updateDebugLogs("[!] ServerConnection[" + this.serverId + "]: Failed to receive response ...");
+                updateDebugLogs("[!] ServerConnection[" + this.serverId + "]: Server Down ...");
                 requestQueue.add(request);
                 this.stop();
             } catch (ClassNotFoundException ex) {
-                System.out.println("[!] ServerConnection[" + this.serverId + "]: Failed converting object to PiResponse ...");
+                updateDebugLogs("[!] ServerConnection[" + this.serverId + "]: Failed converting object to PiResponse ...");
             }
         }
     }
@@ -90,9 +91,16 @@ public class ServerConnection implements Runnable {
             this.oInStream.close();
             this.oOutStream.close();
         } catch (IOException ioe) {
-            System.out.println("[!] IOException! ServerConnection[" + this.serverId + "]");
+            updateDebugLogs("[!] IOException! ServerConnection[" + this.serverId + "]");
             ioe.printStackTrace();
         }*/
     }
+    
+    private void updateDebugLogs(String s) {
+        if (TEST) {
+            System.out.println(s);
+        }
+    }
+    
     
 }

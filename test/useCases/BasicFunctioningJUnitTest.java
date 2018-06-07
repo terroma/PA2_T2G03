@@ -87,7 +87,7 @@ public class BasicFunctioningJUnitTest {
         sleep(20000);
         
         pool.shutdown();
-        System.out.println("Pool Shutdown");
+        System.out.println("test finished");
     }
     
 }

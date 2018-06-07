@@ -22,6 +22,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class RequestHandler implements Runnable {
 
+    private static final boolean TEST = false;
     protected Socket clientSocket;
     protected Server server;
     protected boolean isStopped;
@@ -47,7 +48,7 @@ public class RequestHandler implements Runnable {
         try {
             /*
             synchronized ( this ) {
-                System.out.println(Thread.currentThread().getId());
+                updateDebugLogs(Thread.currentThread().getId());
             }
             */
             this.oInStream = 
@@ -57,7 +58,7 @@ public class RequestHandler implements Runnable {
             
             long time = System.currentTimeMillis();
             while( !isStopped() ) {
-                //System.out.println("Está à espera");
+                //updateDebugLogs("Está à espera");
                 PiRequest request = (PiRequest) oInStream.readObject();
                 PiResponse response = null;
                 if(request!=null){
@@ -69,17 +70,17 @@ public class RequestHandler implements Runnable {
                         if (server.getServerGUI() != null)
                             server.getServerGUI().updateLogs("Server: " + server.getHost() + " can't compute request.");
                         
-                        System.out.println("Server: " + server.getHost() + " can't compute request.");
+                        updateDebugLogs("Server: " + server.getHost() + " can't compute request.");
                         requestQueue.remove(this);
                         break;
                     }
                     this.processing = true;
                     server.sendStatistics((int)Thread.currentThread().getId(), request.getRequestId());
-                    System.out.println("ThreadId: "+Thread.currentThread().getId()+" requestID: "+request.getRequestId());
+                    updateDebugLogs("ThreadId: "+Thread.currentThread().getId()+" requestID: "+request.getRequestId());
                     if (server.getServerGUI() != null)
                         server.getServerGUI().updateLogs("Server: " + server.getHost() + " received request: [" + request.toString() + " ]");
                     
-                    System.out.println("Server: " + server.getHost() + " received request: [" + request.toString() + " ]");
+                    updateDebugLogs("Server: " + server.getHost() + " received request: [" + request.toString() + " ]");
                     if (server.getServerGUI() != null)
                         server.getServerGUI().updateLogs("Server: " + server.getHost() + " is computing request");
                     
@@ -88,11 +89,11 @@ public class RequestHandler implements Runnable {
                     if (server.getServerGUI() != null)    
                         server.getServerGUI().updateLogs("Server: " + server.getHost() + " finish computing and is trying to send result.");
                     
-                    //System.out.println("Server: " + server.getHost() + " finish computing and is trying to send result.");
+                    //updateDebugLogs("Server: " + server.getHost() + " finish computing and is trying to send result.");
                     oOutStream.writeObject(response);
                     if (server.getServerGUI() != null)
                         server.getServerGUI().updateLogs("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
-                    System.out.println("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
+                    updateDebugLogs("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
                     oOutStream.flush();
                     this.processing = false;
                     requestQueue.remove(this);
@@ -101,7 +102,7 @@ public class RequestHandler implements Runnable {
             }
             //this.stop();
         } catch (IOException ioe) {
-            System.out.println("Closing client connection ");
+            updateDebugLogs("Closing client connection ");
             this.isStopped = true;
             try {
                 clientSocket.close();
@@ -131,4 +132,11 @@ public class RequestHandler implements Runnable {
             ex.getMessage();
         }
     }
+    
+    private void updateDebugLogs(String s) {
+        if (TEST) {
+            System.out.println(s);
+        }
+    }
+    
 }

@@ -36,6 +36,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class LoadBalancer implements IFLoadBalancer, Runnable{
     
+    private static final boolean TEST = false;
     private final static IFRule DEFAULT_RULE = new RoundRobinRule();
     private static final String DEFAULT_NAME = "lb-default";
     private static final String PREFIX = "load-balancer_";
@@ -171,7 +172,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
     public void run() {
         openClientsSocket();
         updateLogs("LoadBalancer Started!");
-        System.out.println("LoadBalancer Started!");
+        updateDebugLogs("LoadBalancer Started!");
         
         //monitor = new Monitor(monitorIp, monitorPort, null, null);
         //monitor = new Monitor(monitorIp, monitorPort, new SerialHeartBeat(), new SerialHeartBeatStrategy());
@@ -193,9 +194,9 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                 if (!requestQueue.isEmpty() && !getReachableServers().isEmpty()) {
                     Server choosenServer = chooseServer(this);
                     updateLogs("LoadBalancer received request [" + requestQueue.peek().toString() + "]");
-                    System.out.println("LoadBalancer received request [" + requestQueue.peek().toString() + "]");
+                    updateDebugLogs("LoadBalancer received request [" + requestQueue.peek().toString() + "]");
                     updateLogs("LoadBalancer choosen server " + choosenServer.getHost());
-                    System.out.println("LoadBalancer choosen server " + choosenServer.getHost());
+                    updateDebugLogs("LoadBalancer choosen server " + choosenServer.getHost());
                     Socket serverSocket = new Socket(choosenServer.getHost(),choosenServer.getPort());
                     serverConnections.put(choosenServer, serverSocket);
                     //System.out.println("Created new server socket!");
@@ -213,7 +214,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         }
         this.clientConnnectionsPool.shutdownNow();
         this.serverConnectionsPool.shutdownNow();
-        System.out.println("Shutting down pools ...");
+        updateDebugLogs("Shutting down pools ...");
     }
 
     public String getIp() {
@@ -285,7 +286,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                     /* handle client connections */ 
                     clientSocket = socket.accept();
                     updateLogs("LoadBalancer recieved a new client connection.");
-                    System.out.println("LoadBalancer recieved a new client connection.");
+                    updateDebugLogs("LoadBalancer recieved a new client connection.");
                     ClientConnection newConnection = new ClientConnection(requestQueue, clientConnections,clientSocket, clientCount, gui);
                     //clientConnections.put(clientCount, newConnection);
                     //clientCount++;
@@ -300,11 +301,17 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                     clientSocket.close();
                 }
             } catch (IOException ex) {
-                System.out.println("Fail to close Client Socket.");
+                updateDebugLogs("Fail to close Client Socket.");
             }
         }
     }
         
+    private void updateDebugLogs(String s) {
+        if (TEST) {
+            System.out.println(s);
+        }
+    }
+    
     private void updateLogs(String s) {
         if (gui != null) {
             gui.updateLogs(s);

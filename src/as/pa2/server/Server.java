@@ -29,6 +29,8 @@ import java.util.logging.Logger;
 
 public class Server implements Serializable, Runnable {
 
+    private static final boolean TEST = false;
+
     protected int serverPort;
     protected transient ServerSocket serverSocket;
     protected boolean isStopped;
@@ -93,13 +95,13 @@ public class Server implements Serializable, Runnable {
     public void run() {
         this.isStopped = false;
         updateLogs("Starting Server ["+host+"]!");
-        System.out.println("Starting Server ["+host+"]!");
+        updateDebugLogs("Starting Server ["+host+"]!");
         synchronized( this ) {
             this.runningThread = Thread.currentThread();
         }
         openServerSocket();
         updateLogs("Server ["+host+"] Connected.");
-        System.out.println("Server ["+host+"] Connected.");
+        updateDebugLogs("Server ["+host+"] Connected.");
         notifyMonitor(monitorIp, monitorPort);
         heartBeatThread = new Thread(new Runnable() {
             @Override
@@ -110,7 +112,7 @@ public class Server implements Serializable, Runnable {
                         srvSckt = new ServerSocket(2000 , 10, InetAddress.getByName(host));
                         srvSckt.accept();
                     } catch (IOException ex) {
-                        //System.out.println("[*] Server["+id+"] Error openning ping socket! ");
+                        //updateDebugLogs("[*] Server["+id+"] Error openning ping socket! ");
                     }
                 }
                 try {
@@ -144,7 +146,7 @@ public class Server implements Serializable, Runnable {
             } 
         }
         this.threadPool.shutdown();
-        System.out.println("Shutting down pool ...");
+        updateDebugLogs("Shutting down pool ...");
     }
     
     public void sendStatistics(int threadId, int requestId) throws IOException {
@@ -309,6 +311,12 @@ public class Server implements Serializable, Runnable {
         int hash = 7;
         hash = 31 * hash + (null == this.getId() ? 0 : this.getId().hashCode());
         return hash;
+    }
+    
+    private void updateDebugLogs(String s) {
+        if (TEST) {
+            System.out.println(s);
+        }
     }
     
 }
