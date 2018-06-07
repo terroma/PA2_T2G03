@@ -12,6 +12,7 @@ import as.pa2.server.Server;
 import java.util.List;
 import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
+import javax.swing.text.DefaultCaret;
 
 /**
  *
@@ -35,6 +36,8 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         validator = new AbstractValidate();
         this.monitor = new Monitor(this);
         this.loadBalancer = new LoadBalancer(this);
+        DefaultCaret caret = (DefaultCaret)jLogs.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     }
 
     /*
@@ -94,6 +97,7 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         jLabel7 = new javax.swing.JLabel();
         jMonitorIP = new javax.swing.JTextField();
         jLoadBalancerIP = new javax.swing.JTextField();
+        jButton3 = new javax.swing.JButton();
 
         jScrollPane3.setViewportView(jTree1);
 
@@ -146,6 +150,13 @@ public class MonitorLBGUI extends javax.swing.JFrame {
 
         jLoadBalancerIP.setText("127.0.0.3");
 
+        jButton3.setText("Clear Logs");
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton3ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -186,8 +197,10 @@ public class MonitorLBGUI extends javax.swing.JFrame {
                             .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 245, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 33, Short.MAX_VALUE)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel5)
-                            .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(jLabel5)
+                                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 598, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jButton3, javax.swing.GroupLayout.Alignment.TRAILING)))
                     .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING))
                 .addContainerGap())
         );
@@ -217,10 +230,13 @@ public class MonitorLBGUI extends javax.swing.JFrame {
                     .addComponent(jLabel4)
                     .addComponent(jLabel5))
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 343, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(12, 12, 12))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 316, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton3))
+                    .addComponent(jScrollPane2))
+                .addContainerGap())
         );
 
         pack();
@@ -315,6 +331,10 @@ public class MonitorLBGUI extends javax.swing.JFrame {
         }.execute();     
     }//GEN-LAST:event_jButton2ActionPerformed
 
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+        jLogs.setText("");
+    }//GEN-LAST:event_jButton3ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -353,6 +373,7 @@ public class MonitorLBGUI extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JButton jButton3;
     private javax.swing.JTextField jClientPort;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

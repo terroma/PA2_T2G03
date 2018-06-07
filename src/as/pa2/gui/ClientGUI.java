@@ -9,6 +9,7 @@ import as.pa2.client.Client;
 import as.pa2.gui.validation.AbstractValidate;
 import as.pa2.protocol.PiRequest;
 import javax.swing.SwingWorker;
+import javax.swing.text.DefaultCaret;
 
 /**
  *
@@ -23,7 +24,7 @@ public class ClientGUI extends javax.swing.JFrame {
     private AbstractValidate validator;
     
     long precisionLong;
-    int delayInt;   
+    int delayInt;
     
     private int requestID = 1;
             
@@ -34,6 +35,8 @@ public class ClientGUI extends javax.swing.JFrame {
         initComponents();
         validator = new AbstractValidate();
         clientobj = new Client(this);
+        DefaultCaret caret = (DefaultCaret)jLogs.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     }
     
     public void updateLogs(String line){
@@ -200,7 +203,8 @@ public class ClientGUI extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-
+  
+   
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         new SwingWorker<Client, Object> (){
             @Override

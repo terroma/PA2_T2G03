@@ -20,10 +20,14 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+
 /**
  *
- * @author terroma
+ * @author Bruno Assunção 89010
+ * @author Hugo Chaves  90842
+ * 
  */
+
 public class ReplicasOfComputation {
     
     public ReplicasOfComputation() {

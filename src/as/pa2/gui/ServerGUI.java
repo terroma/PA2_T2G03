@@ -8,6 +8,7 @@ package as.pa2.gui;
 import as.pa2.gui.validation.AbstractValidate;
 import as.pa2.server.Server;
 import javax.swing.SwingWorker;
+import javax.swing.text.DefaultCaret;
 
 /**
  *
@@ -15,6 +16,7 @@ import javax.swing.SwingWorker;
  * @author Hugo Chaves  90842
  * 
  */
+
 public class ServerGUI extends javax.swing.JFrame {
     
     private Server serverobj;
@@ -28,6 +30,8 @@ public class ServerGUI extends javax.swing.JFrame {
         initComponents();
         validator = new AbstractValidate();
         serverobj = new Server(this);
+        DefaultCaret caret = (DefaultCaret)JLogs.getCaret();
+        caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
     }
     
     public void updateLogs(String line){
@@ -47,7 +51,6 @@ public class ServerGUI extends javax.swing.JFrame {
         jEditorPane1 = new javax.swing.JEditorPane();
         jButton1 = new javax.swing.JButton();
         jLabel1 = new javax.swing.JLabel();
-        jButton2 = new javax.swing.JButton();
         jMonitorIP = new javax.swing.JTextField();
         jMonitorPort = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
@@ -73,13 +76,6 @@ public class ServerGUI extends javax.swing.JFrame {
         });
 
         jLabel1.setText("Server:");
-
-        jButton2.setText("Stop");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
 
         jMonitorIP.setText("127.0.0.2");
         jMonitorIP.addActionListener(new java.awt.event.ActionListener() {
@@ -122,9 +118,7 @@ public class ServerGUI extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                             .addComponent(jScrollPane2)
                             .addGroup(layout.createSequentialGroup()
-                                .addGap(0, 436, Short.MAX_VALUE)
-                                .addComponent(jButton2)
-                                .addGap(18, 18, 18)
+                                .addGap(0, 0, Short.MAX_VALUE)
                                 .addComponent(jButton1))
                             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                 .addComponent(jLabel1)
@@ -174,9 +168,7 @@ public class ServerGUI extends javax.swing.JFrame {
                 .addGap(28, 28, 28)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 267, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
+                .addComponent(jButton1)
                 .addContainerGap())
         );
 
@@ -248,31 +240,6 @@ public class ServerGUI extends javax.swing.JFrame {
         }.execute();
     }//GEN-LAST:event_jButton1ActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        new SwingWorker<Server, Object> (){
-            @Override
-            protected Server doInBackground() throws Exception {
-                if (!estado){
-                    JLogs.append("Server is already down \n");
-                    return null;
-                }else{
-                    estado = false;
-                    JLogs.append("Connection ended by server \n");
-                    
-                    jServerIP.setEnabled(true);
-                    jServerPort.setEnabled(true);
-                    jMonitorIP.setEnabled(true);
-                    jMonitorPort.setEnabled(true);
-                    jQueueSize.setEnabled(true);
-                    
-                    serverobj.stop();
-                    
-                    return serverobj;
-                }
-            }
-        }.execute();
-    }//GEN-LAST:event_jButton2ActionPerformed
-
     private void jMonitorIPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMonitorIPActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jMonitorIPActionPerformed
@@ -315,7 +282,6 @@ public class ServerGUI extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextArea JLogs;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JEditorPane jEditorPane1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
