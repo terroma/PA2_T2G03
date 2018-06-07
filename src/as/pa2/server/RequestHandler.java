@@ -93,6 +93,7 @@ public class RequestHandler implements Runnable {
                     oOutStream.writeObject(response);
                     if (server.getServerGUI() != null)
                         server.getServerGUI().updateLogs("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
+                    
                     updateDebugLogs("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
                     oOutStream.flush();
                     this.processing = false;

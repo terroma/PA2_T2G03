@@ -25,6 +25,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Load-Balancer Implementation.
@@ -72,8 +74,8 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         this.gui = gui;
         this.isStopped = false;
         setRule(DEFAULT_RULE);
-        this.clientConnnectionsPool = Executors.newFixedThreadPool(4);
-        this.serverConnectionsPool = Executors.newFixedThreadPool(4);
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
+        this.serverConnectionsPool = Executors.newFixedThreadPool(10);
 
     }
     
@@ -85,16 +87,16 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         this.port = port;
         this.monitorIp = monitorIp;
         this.monitorPort = monitorPort;
-        this.clientConnnectionsPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        this.serverConnectionsPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
+        this.serverConnectionsPool = Executors.newFixedThreadPool(10);
     }
     
     public LoadBalancer(String name, IFRule rule) {
         this.name = name;
         this.isStopped = false;
         setRule(rule);    
-        this.clientConnnectionsPool = Executors.newFixedThreadPool(5);
-        this.serverConnectionsPool = Executors.newFixedThreadPool(5);
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(10);
+        this.serverConnectionsPool = Executors.newFixedThreadPool(10);
     }
      
     @Override
@@ -175,8 +177,8 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         updateDebugLogs("LoadBalancer Started!");
         
         //monitor = new Monitor(monitorIp, monitorPort, null, null);
-        //monitor = new Monitor(monitorIp, monitorPort, new SerialHeartBeat(), new SerialHeartBeatStrategy());
-        monitor = new Monitor(monitorIp, monitorPort, new ParallelHeartBeat(), new ParallelHeartBeatStategy());
+        monitor = new Monitor(monitorIp, monitorPort, new SerialHeartBeat(), new SerialHeartBeatStrategy());
+        //monitor = new Monitor(monitorIp, monitorPort, new ParallelHeartBeat(), new ParallelHeartBeatStategy());
         if(gui != null)
             monitor.setMonitorLBGui(this.gui);
         
@@ -189,7 +191,6 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         
         while (!isStopped()) {
             try {
-
                 /* choose and handle server connections */
                 if (!requestQueue.isEmpty() && !getReachableServers().isEmpty()) {
                     Server choosenServer = chooseServer(this);
@@ -197,17 +198,17 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                     updateDebugLogs("LoadBalancer received request [" + requestQueue.peek().toString() + "]");
                     updateLogs("LoadBalancer choosen server " + choosenServer.getHost());
                     updateDebugLogs("LoadBalancer choosen server " + choosenServer.getHost());
-                    Socket serverSocket = new Socket(choosenServer.getHost(),choosenServer.getPort());
-                    serverConnections.put(choosenServer, serverSocket);
-                    //System.out.println("Created new server socket!");
-                    this.serverConnectionsPool.execute(new ServerConnection(clientConnections, handledRequests, requestQueue,serverConnections.get(choosenServer), choosenServer.getId(), requestQueue.take()));
+                    Socket serverSocket = null;
+                    try {
+                        serverSocket = new Socket(choosenServer.getHost(),choosenServer.getPort());
+                        serverConnections.put(choosenServer, serverSocket);
+                        //System.out.println("Created new server socket!");
+                        this.serverConnectionsPool.execute(new ServerConnection(clientConnections, handledRequests, requestQueue,serverConnections.get(choosenServer), choosenServer.getId(), requestQueue.take()));
+                    } catch (IOException ex) {
+                        //erverConnections.clear();
+                        //monitor.markServerDown(choosenServer);                        
+                    }        
                 }
-            } catch (IOException ioe) {
-                if (isStopped()) {
-                    updateLogs("LoadBalancer Stopped!");
-                    break;
-                }
-                throw new RuntimeException("[!] LoadBalancer: Error accepting connections from clients.",ioe);
             } catch (InterruptedException ex) {
                 updateLogs("[!] LoadBalancer: Failed to take request from queue.");
             }

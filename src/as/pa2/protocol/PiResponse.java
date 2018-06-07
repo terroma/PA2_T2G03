@@ -34,6 +34,14 @@ public class PiResponse extends PiRequest implements Serializable{
     
     @Override
     public String toString() {
+        if (this.getCode() == 3) {
+            return String.join(" | ",
+                Integer.toString(this.getClientId()),
+                Integer.toString(this.getRequestId()),
+                String.format("%02d", this.getCode()),
+                Long.toString(this.getPrecision()),
+                Integer.toString(this.getDelay()));
+        }
         return String.join(" | ",
                 Integer.toString(this.getClientId()),
                 Integer.toString(this.getRequestId()),

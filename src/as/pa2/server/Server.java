@@ -29,8 +29,6 @@ import java.util.logging.Logger;
 
 public class Server implements Serializable, Runnable {
 
-    private static final boolean TEST = false;
-
     protected int serverPort;
     protected transient ServerSocket serverSocket;
     protected boolean isStopped;
@@ -95,37 +93,31 @@ public class Server implements Serializable, Runnable {
     public void run() {
         this.isStopped = false;
         updateLogs("Starting Server ["+host+"]!");
-        updateDebugLogs("Starting Server ["+host+"]!");
+        System.out.println("Starting Server ["+host+"]!");
         synchronized( this ) {
             this.runningThread = Thread.currentThread();
         }
         openServerSocket();
         updateLogs("Server ["+host+"] Connected.");
-        updateDebugLogs("Server ["+host+"] Connected.");
+        System.out.println("Server ["+host+"] Connected.");
         notifyMonitor(monitorIp, monitorPort);
+        
         heartBeatThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 ServerSocket srvSckt = null;
-                while (!isStopped()) {
+                while (true) {
                     try {
                         srvSckt = new ServerSocket(2000 , 10, InetAddress.getByName(host));
                         srvSckt.accept();
                     } catch (IOException ex) {
-                        //updateDebugLogs("[*] Server["+id+"] Error openning ping socket! ");
+                        //System.out.println("[*] Server["+id+"] Error openning ping socket! ");
                     }
-                }
-                try {
-                    if(srvSckt!=null){
-                        srvSckt.close();
-                    }
-                } catch (IOException ex) {
-                    Logger.getLogger(Server.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         });
         heartBeatThread.start();
-
+        
         while ( !isStopped() ) {
             Socket clientSocket = null;
             
@@ -146,7 +138,7 @@ public class Server implements Serializable, Runnable {
             } 
         }
         this.threadPool.shutdown();
-        updateDebugLogs("Shutting down pool ...");
+        System.out.println("Shutting down pool ...");
     }
     
     public void sendStatistics(int threadId, int requestId) throws IOException {
@@ -311,12 +303,6 @@ public class Server implements Serializable, Runnable {
         int hash = 7;
         hash = 31 * hash + (null == this.getId() ? 0 : this.getId().hashCode());
         return hash;
-    }
-    
-    private void updateDebugLogs(String s) {
-        if (TEST) {
-            System.out.println(s);
-        }
     }
     
 }

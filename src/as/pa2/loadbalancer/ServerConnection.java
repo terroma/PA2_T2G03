@@ -15,7 +15,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  * @author Hugo Chaves  90842
  * 
  */
-
 public class ServerConnection implements Runnable {
 
     private static final boolean TEST = false;
@@ -53,10 +52,12 @@ public class ServerConnection implements Runnable {
                 this.oOutStream = new ObjectOutputStream(this.tcpSocket.getOutputStream());
                 this.oOutStream.writeObject(this.request);
                 this.oOutStream.flush();
+                
             } catch (IOException ex) {
                 updateDebugLogs("[!] ServerConnection[" + this.serverId + "]: Failed to send request ...");
                 updateDebugLogs("[!] ServerConnection[" + this.serverId + "]: Server Down ...");
                 requestQueue.add(request);
+                System.out.println("Servidor nao foi encontrado addicionou a lista");
                 this.stop();
             }
             try {
