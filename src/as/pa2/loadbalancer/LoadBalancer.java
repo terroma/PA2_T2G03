@@ -9,6 +9,8 @@ import as.pa2.gui.MonitorLBGUI;
 import as.pa2.loadbalancer.strategies.IFRule;
 import as.pa2.loadbalancer.strategies.RoundRobinRule;
 import as.pa2.monitor.Monitor;
+import as.pa2.monitor.availability.ParallelHeartBeat;
+import as.pa2.monitor.availability.ParallelHeartBeatStategy;
 import as.pa2.monitor.availability.SerialHeartBeat;
 import as.pa2.monitor.availability.SerialHeartBeatStrategy;
 import as.pa2.protocol.PiRequest;
@@ -82,16 +84,16 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         this.port = port;
         this.monitorIp = monitorIp;
         this.monitorPort = monitorPort;
-        this.clientConnnectionsPool = Executors.newFixedThreadPool(4);
-        this.serverConnectionsPool = Executors.newFixedThreadPool(4);
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        this.serverConnectionsPool = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
     }
     
     public LoadBalancer(String name, IFRule rule) {
         this.name = name;
         this.isStopped = false;
         setRule(rule);    
-        this.clientConnnectionsPool = Executors.newFixedThreadPool(4);
-        this.serverConnectionsPool = Executors.newFixedThreadPool(4);
+        this.clientConnnectionsPool = Executors.newFixedThreadPool(5);
+        this.serverConnectionsPool = Executors.newFixedThreadPool(5);
     }
      
     @Override
@@ -169,18 +171,21 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
     public void run() {
         openClientsSocket();
         updateLogs("LoadBalancer Started!");
+        System.out.println("LoadBalancer Started!");
         
         //monitor = new Monitor(monitorIp, monitorPort, null, null);
-        monitor = new Monitor(monitorIp, monitorPort, new SerialHeartBeat(), new SerialHeartBeatStrategy());
-        //monitor = new Monitor(monitorIp, monitorPort, new ParallelPing(), new ParallelPingStategy());
+        //monitor = new Monitor(monitorIp, monitorPort, new SerialHeartBeat(), new SerialHeartBeatStrategy());
+        monitor = new Monitor(monitorIp, monitorPort, new ParallelHeartBeat(), new ParallelHeartBeatStategy());
         if(gui != null)
             monitor.setMonitorLBGui(this.gui);
         
-        (new Thread(monitor)).start();
-        
+        //(new Thread(monitor)).start();
+        clientConnnectionsPool.execute(monitor);
+        clientConnnectionsPool.execute(new HandleClientConnections());
         int clientCount = 0;
-        clientConnectionsThread = new Thread(new HandleClientConnections());
-        clientConnectionsThread.start();
+        //clientConnectionsThread = new Thread(new HandleClientConnections());
+        //clientConnectionsThread.start();
+        
         while (!isStopped()) {
             try {
 
@@ -208,6 +213,7 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
         }
         this.clientConnnectionsPool.shutdownNow();
         this.serverConnectionsPool.shutdownNow();
+        System.out.println("Shutting down pools ...");
     }
 
     public String getIp() {
@@ -279,9 +285,10 @@ public class LoadBalancer implements IFLoadBalancer, Runnable{
                     /* handle client connections */ 
                     clientSocket = socket.accept();
                     updateLogs("LoadBalancer recieved a new client connection.");
-                    ClientConnection newConnection = new ClientConnection(requestQueue, clientSocket, clientCount, gui);
-                    clientConnections.put(clientCount, newConnection);
-                    clientCount++;
+                    System.out.println("LoadBalancer recieved a new client connection.");
+                    ClientConnection newConnection = new ClientConnection(requestQueue, clientConnections,clientSocket, clientCount, gui);
+                    //clientConnections.put(clientCount, newConnection);
+                    //clientCount++;
                     clientConnnectionsPool.execute(newConnection);
                 } catch (IOException ex) {
                     //Logger.getLogger(LoadBalancer.class.getName()).log(Level.SEVERE, null, ex);

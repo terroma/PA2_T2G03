@@ -45,9 +45,11 @@ public class RequestHandler implements Runnable {
     @Override
     public void run() {
         try {
+            /*
             synchronized ( this ) {
                 System.out.println(Thread.currentThread().getId());
             }
+            */
             this.oInStream = 
                     new ObjectInputStream(clientSocket.getInputStream());
             this.oOutStream =
@@ -59,26 +61,37 @@ public class RequestHandler implements Runnable {
                 PiRequest request = (PiRequest) oInStream.readObject();
                 PiResponse response = null;
                 if(request!=null){
-                    System.out.println("queueSize: "+requestQueue.size());
+                    
                     if (requestQueue.size() > queueSize) {
                         response = new PiResponse(request.getClientId(), request.getRequestId(), 3, request.getPrecision(), request.getDelay(), 0);
                         oOutStream.writeObject(response);
                         oOutStream.flush();
-                        server.getServerGUI().updateLogs("Server: " + server.getHost() + " can't compute request.");
+                        if (server.getServerGUI() != null)
+                            server.getServerGUI().updateLogs("Server: " + server.getHost() + " can't compute request.");
+                        
+                        System.out.println("Server: " + server.getHost() + " can't compute request.");
                         requestQueue.remove(this);
                         break;
                     }
                     this.processing = true;
                     server.sendStatistics((int)Thread.currentThread().getId(), request.getRequestId());
-                    //System.out.println("ThreadId: "+Thread.currentThread().getId()+" requestID: "+request.getRequestId());
-                    server.getServerGUI().updateLogs("Server: " + server.getHost() + " received request: [" + request.toString() + " ]");
+                    System.out.println("ThreadId: "+Thread.currentThread().getId()+" requestID: "+request.getRequestId());
+                    if (server.getServerGUI() != null)
+                        server.getServerGUI().updateLogs("Server: " + server.getHost() + " received request: [" + request.toString() + " ]");
+                    
                     System.out.println("Server: " + server.getHost() + " received request: [" + request.toString() + " ]");
-                    server.getServerGUI().updateLogs("Server: " + server.getHost() + " is computing request");
+                    if (server.getServerGUI() != null)
+                        server.getServerGUI().updateLogs("Server: " + server.getHost() + " is computing request");
+                    
                     Double pi = new Pi().compute(request.getPrecision(), request.getDelay());
                     response = new PiResponse(request.getClientId(), request.getRequestId(), 2, request.getPrecision(), request.getDelay(), pi);
-                    server.getServerGUI().updateLogs("Server: " + server.getHost() + " finish computing and is trying to send result.");
+                    if (server.getServerGUI() != null)    
+                        server.getServerGUI().updateLogs("Server: " + server.getHost() + " finish computing and is trying to send result.");
+                    
+                    //System.out.println("Server: " + server.getHost() + " finish computing and is trying to send result.");
                     oOutStream.writeObject(response);
-                    server.getServerGUI().updateLogs("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
+                    if (server.getServerGUI() != null)
+                        server.getServerGUI().updateLogs("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
                     System.out.println("Server: " + server.getHost() + " sended result: [" + response.toString() + " ]");
                     oOutStream.flush();
                     this.processing = false;

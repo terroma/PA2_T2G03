@@ -61,13 +61,13 @@ public class Client {
     private void initClient(String host, int port) {
         try {
             updateLogs("Starting Client ["+clientId+"]. \n");
-            System.out.println("Starting Client ["+clientId+"]. \n");
+            System.out.println("Starting Client ["+clientId+"]...");
             this.connectedAddress = Inet4Address.getByName(host);
             this.loadBalancerPort = port;
             this.tcpSocket = new Socket(host, port);
             
             updateLogs("Client ["+clientId+"] Connected on port:"+loadBalancerPort + "\n");
-            System.out.println("Client ["+clientId+"] Connected on port:"+loadBalancerPort + "\n");
+            System.out.println("Client ["+clientId+"] Connected on port:"+loadBalancerPort);
             
             this.oOutStream = new ObjectOutputStream(tcpSocket.getOutputStream());
 
@@ -99,9 +99,9 @@ public class Client {
                 return;
             try {
                 updateLogs("Client["+clientId+"] Sending Request: \n");
-                System.out.println("Client["+clientId+"] Sending Request: \n");
+                System.out.println("Client["+clientId+"] Sending Request: ");
                 updateLogs("[ "+request.toString() + " ] \n");
-                System.out.println("[ "+request.toString() + " ] \n");
+                System.out.println("[ "+request.toString() + " ] ");
                 this.oOutStream.writeObject(request);
                 this.oOutStream.flush();
             } catch (IOException ioe) {
@@ -135,9 +135,9 @@ public class Client {
                     PiResponse response = (PiResponse) oInStream.readObject();
                     if (response != null) {
                         updateLogs("Client ["+clientId+"] Received response: \n");
-                        System.out.println("Client ["+clientId+"] Received response: \n");
+                        System.out.println("Client ["+clientId+"] Received response: ");
                         updateLogs("[ "+ response.toString() + " ] \n");
-                        System.out.println("[ "+ response.toString() + " ] \n");
+                        System.out.println("[ "+ response.toString() + " ] ");
                     }
                 }
             } catch (IOException ioe) {

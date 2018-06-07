@@ -125,6 +125,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
     public void run() {
         openMonitorSocket();
         updateLogs("Monitor Started!");
+        System.out.println("Monitor Started!");
         
         Socket serverSocket = null;
         while (!isStopped()) {
@@ -138,10 +139,12 @@ public class Monitor extends AbstractMonitor implements Runnable {
                     addServer(newServer);
                     this.threadPool.execute(new ServerListeningThread(serverSocket, oInStream));
                     updateLogs("Monitor: accepted connection from server: " + newServer.getId());
+                    System.out.println("Monitor: accepted connection from server: " + newServer.getId());
                 }
             } catch (IOException ioe) {
                 if (isStopped()) {
                     updateLogs("Monitor Stopped!");
+                    System.out.println("Monitor Stopped!");
                     try {
                         if(serverSocket!=null){
                            serverSocket.close(); 
@@ -174,6 +177,7 @@ public class Monitor extends AbstractMonitor implements Runnable {
                     s = oInStream.readUTF();
                     if (s != null) {
                         updateLogs(s);
+                        System.out.println(s);
                     }
                 }
             } catch (IOException ex) {

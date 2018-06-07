@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -23,15 +24,17 @@ public class ClientConnection implements Runnable {
     protected int clientId;
     protected final int internalId;
     protected LinkedBlockingQueue<PiRequest> requestsQueue;
+    protected ConcurrentHashMap<Integer, ClientConnection> clientConnections;
     protected boolean isStopped;
     protected MonitorLBGUI mlb;
     
-    public ClientConnection(LinkedBlockingQueue<PiRequest> requestQueue, Socket tcpSocket,final int internalId, MonitorLBGUI mlb) {
+    public ClientConnection(LinkedBlockingQueue<PiRequest> requestQueue,ConcurrentHashMap<Integer,ClientConnection> clientConnections, Socket tcpSocket,final int internalId, MonitorLBGUI mlb) {
         this.requestsQueue = requestQueue;
         this.tcpSocket = tcpSocket;
         this.internalId = internalId;
         this.isStopped = false;
         this.mlb = mlb;
+        this.clientConnections = clientConnections;
         initStreams();
     }
 
@@ -55,7 +58,8 @@ public class ClientConnection implements Runnable {
                     
                 if (request != null) {
                     try {
-                        request.setClientId(internalId);
+                        //request.setClientId(internalId);
+                        clientConnections.put(request.getClientId(), this);
                         requestsQueue.put(request);
                         //System.out.println("[*] ClientConnection request added to list...");
                     } catch (InterruptedException ex) {
@@ -82,7 +86,10 @@ public class ClientConnection implements Runnable {
             try {
                 response.setClientId(clientId);
                 //System.out.println("[*] ClientConnection["+this.internalId+"]: sending response ...");
-                mlb.updateLogs("Sending response to Client: " + clientId);
+                if (mlb != null)
+                    mlb.updateLogs("Sending response to Client: " + clientId);
+                
+                //System.out.println("Sending response to Client: " + clientId);
                 this.oOutStream.writeObject(response);
                 this.oOutStream.flush();
             } catch (IOException ioe) {

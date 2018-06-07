@@ -46,7 +46,7 @@ public class ServerConnection implements Runnable {
     
     @Override
     public void run() {
-        System.out.println("[*] ServerConnection[" +this.serverId+ "]: started ...");
+        //System.out.println("[*] ServerConnection[" +this.serverId+ "]: started ...");
         while ( !isStopped() ) {
             try {
                 this.oOutStream = new ObjectOutputStream(this.tcpSocket.getOutputStream());
@@ -62,9 +62,9 @@ public class ServerConnection implements Runnable {
                 this.oInStream = new ObjectInputStream(this.tcpSocket.getInputStream());
                 PiResponse response = (PiResponse) this.oInStream.readObject();
                 if (response != null) {
-                    System.out.println("[*] ServerConnection[" + this.serverId + "]: response recieved ...");
+                    //System.out.println("[*] ServerConnection[" + this.serverId + "]: response recieved ...");
                     clientConnections.get(response.getClientId()).sendResponse(response);
-                    System.out.println("[*] ServerConnection[" + this.serverId + "]: response sent ...");
+                    //System.out.println("[*] ServerConnection[" + this.serverId + "]: response sent ...");
                     handledRequests.put(request, response);
                     this.stop();
                 }

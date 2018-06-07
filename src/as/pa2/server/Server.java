@@ -93,11 +93,13 @@ public class Server implements Serializable, Runnable {
     public void run() {
         this.isStopped = false;
         updateLogs("Starting Server ["+host+"]!");
+        System.out.println("Starting Server ["+host+"]!");
         synchronized( this ) {
             this.runningThread = Thread.currentThread();
         }
         openServerSocket();
         updateLogs("Server ["+host+"] Connected.");
+        System.out.println("Server ["+host+"] Connected.");
         notifyMonitor(monitorIp, monitorPort);
         heartBeatThread = new Thread(new Runnable() {
             @Override
@@ -140,13 +142,9 @@ public class Server implements Serializable, Runnable {
                 throw new RuntimeException(
                         "Error accepting client connection.",ioe);
             } 
-            
-            /*
-            this.threadPool.execute(
-                        new RequestHandler(clientSocket, this.serverId));
-            */
         }
         this.threadPool.shutdown();
+        System.out.println("Shutting down pool ...");
     }
     
     public void sendStatistics(int threadId, int requestId) throws IOException {

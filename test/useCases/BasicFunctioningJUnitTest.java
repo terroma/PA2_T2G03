@@ -11,6 +11,8 @@ import as.pa2.protocol.PiRequest;
 import as.pa2.server.Server;
 import java.io.IOException;
 import static java.lang.Thread.sleep;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -56,34 +58,36 @@ public class BasicFunctioningJUnitTest {
         
         LoadBalancer lb = new LoadBalancer("127.0.0.5", 5000, "127.0.0.2", 5000);
         
-        (new Thread(lb)).start();
+        ExecutorService pool = Executors.newFixedThreadPool(4);
+        pool.execute(lb);
+        sleep(1000);
+        pool.execute(server1);
+        pool.execute(server2);
+        pool.execute(server3);
         
-        (new Thread(server1)).start();
-        (new Thread(server2)).start();
-        (new Thread(server3)).start();
+        sleep(1000);
         
         Client client1 = new Client("127.0.0.5", 5000);
         Client client2 = new Client("127.0.0.5", 5000);
         
-        PiRequest r1 = new PiRequest(1, 1, 01, 7, 7);
-        PiRequest r2 = new PiRequest(1, 2, 01, 9, 9);
-        PiRequest r3 = new PiRequest(1, 3, 01, 14, 10);
-        PiRequest r4 = new PiRequest(2, 1, 01, 17, 12);
-        PiRequest r5 = new PiRequest(2, 2, 01, 3, 15);
-        PiRequest r6 = new PiRequest(2, 3, 01, 20, 17);
-        
-        
-        
-        
-        
+        PiRequest r1 = new PiRequest(client1.getClientId(), 1, 01, 7, 7);
+        PiRequest r2 = new PiRequest(client2.getClientId(), 1, 01, 9, 9);
+        PiRequest r3 = new PiRequest(client1.getClientId(), 2, 01, 14, 10);
+        PiRequest r4 = new PiRequest(client2.getClientId(), 2, 01, 17, 12);
+        PiRequest r5 = new PiRequest(client1.getClientId(), 3, 01, 3, 15);
+        PiRequest r6 = new PiRequest(client2.getClientId(), 3, 01, 20, 17);
+        sleep(1000);
         client1.sendMessage(r1);
-        client1.sendMessage(r2);
+        client2.sendMessage(r2);
         client1.sendMessage(r3);
         client2.sendMessage(r4);
-        client2.sendMessage(r5);
+        client1.sendMessage(r5);
         client2.sendMessage(r6);
         
-        sleep(10000);
+        sleep(20000);
+        
+        pool.shutdown();
+        System.out.println("Pool Shutdown");
     }
     
 }
